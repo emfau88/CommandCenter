@@ -1,0 +1,1568 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMPERIAL KOMMANDO | Sektor 7</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --void-black: #050508;
+            --deep-space: #0a0a12;
+            --imperial-red: #8B0000;
+            --crimson: #ff0040;
+            --imperial-gold: #D4AF37;
+            --gold-glow: rgba(212, 175, 55, 0.4);
+            --alert-orange: #ff6b35;
+            --emerald: #00ff88;
+            --steel-gray: #1a1a24;
+            --glass-bg: rgba(10, 10, 18, 0.8);
+            --glass-border: rgba(139, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--void-black);
+            color: #e0e0e0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Boot Sequence */
+        #boot-sequence {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--void-black);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1s ease-out;
+        }
+
+        .boot-text {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--imperial-gold);
+            font-size: 14px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .imperial-logo {
+            width: 120px;
+            height: 120px;
+            border: 2px solid var(--imperial-red);
+            position: relative;
+            margin-bottom: 40px;
+            transform: rotate(45deg);
+            box-shadow: 0 0 30px rgba(139, 0, 0, 0.5);
+        }
+
+        .imperial-logo::before {
+            content: 'I';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 60px;
+            font-weight: 900;
+            color: var(--imperial-gold);
+            text-shadow: 0 0 20px var(--gold-glow);
+        }
+
+        .boot-progress {
+            width: 300px;
+            height: 2px;
+            background: rgba(139, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .boot-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--imperial-red), var(--imperial-gold));
+            width: 0%;
+            box-shadow: 0 0 10px var(--imperial-red);
+            transition: width 0.1s linear;
+        }
+
+        /* Language Toggle */
+        .lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 60px;
+            z-index: 100;
+            background: rgba(139, 0, 0, 0.2);
+            border: 1px solid var(--imperial-red);
+            color: var(--imperial-gold);
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .lang-toggle:hover {
+            background: var(--imperial-red);
+            color: var(--void-black);
+        }
+
+        /* Main Interface */
+        #main-interface {
+            opacity: 0;
+            transition: opacity 1s ease-in;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        /* Background Grid */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(139, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 0, 0, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -2;
+        }
+
+        /* Ambient Glow */
+        .ambient-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(139, 0, 0, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: -1;
+            transition: all 0.3s ease-out;
+            filter: blur(60px);
+        }
+
+        /* Glass Panels */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                0 0 20px rgba(139, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(212, 175, 55, 0.05), 
+                transparent);
+            transition: left 0.6s;
+        }
+
+        .glass-panel:hover::before {
+            left: 100%;
+        }
+
+        /* Corner Accents */
+        .corner-accent {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--imperial-gold);
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+
+        .glass-panel:hover .corner-accent {
+            opacity: 1;
+            box-shadow: 0 0 10px var(--imperial-gold);
+        }
+
+        .ca-tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+        .ca-tr { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
+        .ca-bl { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
+        .ca-br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+
+        /* Typography */
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .font-mono-tech { font-family: 'Share Tech Mono', monospace; }
+
+        /* Gold Text */
+        .gold-text {
+            color: var(--imperial-gold);
+            text-shadow: 
+                0 0 10px var(--gold-glow),
+                0 0 20px rgba(212, 175, 55, 0.2);
+        }
+
+        /* Red Text */
+        .crimson-text {
+            color: var(--crimson);
+            text-shadow: 0 0 10px rgba(255, 0, 64, 0.5);
+        }
+
+        /* Scanning Line */
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--imperial-gold), 
+                transparent);
+            box-shadow: 0 0 10px var(--imperial-gold);
+            opacity: 0.6;
+            animation: scan 8s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .float-1 { animation: float 6s ease-in-out infinite; }
+        .float-2 { animation: float 6s ease-in-out infinite 1.5s; }
+        .float-3 { animation: float 6s ease-in-out infinite 3s; }
+
+        /* Pulse Glow */
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(139, 0, 0, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(139, 0, 0, 0.5); }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        /* Glitch Effect */
+        .glitch {
+            position: relative;
+        }
+
+        .glitch.active::before {
+            animation: glitch-1 0.3s linear;
+            color: var(--crimson);
+            z-index: -1;
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch.active::after {
+            animation: glitch-2 0.3s linear;
+            color: var(--imperial-gold);
+            z-index: -2;
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes glitch-1 {
+            0%, 100% { opacity: 0; transform: translate(0); }
+            20% { opacity: 0.8; transform: translate(-2px, 2px); }
+            40% { opacity: 0.8; transform: translate(2px, -2px); }
+            60% { opacity: 0.8; transform: translate(-2px, -2px); }
+            80% { opacity: 0.8; transform: translate(2px, 2px); }
+        }
+
+        @keyframes glitch-2 {
+            0%, 100% { opacity: 0; transform: translate(0); }
+            20% { opacity: 0.8; transform: translate(2px, -2px); }
+            40% { opacity: 0.8; transform: translate(-2px, 2px); }
+            60% { opacity: 0.8; transform: translate(2px, 2px); }
+            80% { opacity: 0.8; transform: translate(-2px, -2px); }
+        }
+
+        /* Particle Burst */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--imperial-gold);
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 6px var(--imperial-gold);
+        }
+
+        /* Progress Rings */
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.5s ease;
+            filter: drop-shadow(0 0 4px currentColor);
+        }
+
+        /* Fullscreen Button */
+        .fullscreen-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(139, 0, 0, 0.2);
+            border: 1px solid var(--imperial-red);
+            color: var(--imperial-gold);
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .fullscreen-btn:hover {
+            background: var(--imperial-red);
+            color: var(--void-black);
+            box-shadow: 0 0 20px var(--imperial-red);
+        }
+
+        /* Tactical Map Styles */
+        .tactical-map {
+            position: relative;
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(139, 0, 0, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(212, 175, 55, 0.05) 0%, transparent 50%),
+                linear-gradient(180deg, #0a0a14 0%, #050508 100%);
+            border: 1px solid rgba(139, 0, 0, 0.3);
+        }
+
+        .map-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(139, 0, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 0, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            pointer-events: none;
+        }
+
+        .map-zone {
+            position: absolute;
+            border: 1px dashed rgba(139, 0, 0, 0.4);
+            background: rgba(139, 0, 0, 0.05);
+        }
+
+        .map-zone-label {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: rgba(139, 0, 0, 0.6);
+            text-transform: uppercase;
+        }
+
+        .tactical-unit {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid;
+        }
+
+        .tactical-unit:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+
+        .unit-friendly {
+            background: rgba(0, 255, 136, 0.2);
+            border-color: var(--emerald);
+            color: var(--emerald);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .unit-enemy {
+            background: rgba(255, 0, 64, 0.2);
+            border-color: var(--crimson);
+            color: var(--crimson);
+            box-shadow: 0 0 10px rgba(255, 0, 64, 0.3);
+            animation: enemy-pulse 2s infinite;
+        }
+
+        .unit-neutral {
+            background: rgba(212, 175, 55, 0.2);
+            border-color: var(--imperial-gold);
+            color: var(--imperial-gold);
+        }
+
+        @keyframes enemy-pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 0, 64, 0.3); }
+            50% { box-shadow: 0 0 20px rgba(255, 0, 64, 0.6); }
+        }
+
+        .radar-sweep {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 200px;
+            height: 200px;
+            transform: translate(-50%, -50%);
+            border: 2px solid rgba(139, 0, 0, 0.3);
+            border-radius: 50%;
+            animation: radar-expand 3s ease-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes radar-expand {
+            0% { width: 0; height: 0; opacity: 1; }
+            100% { width: 300px; height: 300px; opacity: 0; }
+        }
+
+        .supply-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(212, 175, 55, 0.6), 
+                transparent);
+            transform-origin: left center;
+            animation: supply-flow 2s linear infinite;
+        }
+
+        @keyframes supply-flow {
+            0% { background-position: -100% 0; }
+            100% { background-position: 100% 0; }
+        }
+
+        /* Status Indicators */
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 8px;
+            border-radius: 2px;
+            font-size: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        .status-combat {
+            background: rgba(255, 0, 64, 0.2);
+            border: 1px solid var(--crimson);
+            color: var(--crimson);
+        }
+
+        .status-patrol {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid var(--emerald);
+            color: var(--emerald);
+        }
+
+        .status-standby {
+            background: rgba(212, 175, 55, 0.2);
+            border: 1px solid var(--imperial-gold);
+            color: var(--imperial-gold);
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: rgba(10, 10, 18, 0.95);
+            border: 1px solid var(--imperial-gold);
+            border-left: 4px solid var(--imperial-gold);
+            padding: 12px 16px;
+            border-radius: 4px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.2);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            max-width: 300px;
+            transform: translateX(400px);
+            animation: slideInToast 0.3s forwards;
+            pointer-events: auto;
+        }
+
+        .toast.success { border-left-color: var(--emerald); }
+        .toast.warning { border-left-color: var(--alert-orange); }
+        .toast.error { border-left-color: var(--crimson); }
+
+        @keyframes slideInToast {
+            to { transform: translateX(0); }
+        }
+
+        @keyframes fadeOutToast {
+            to { opacity: 0; transform: translateX(400px); }
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 150;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--imperial-gold);
+            border-radius: 8px;
+            padding: 24px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-overlay { background-size: 30px 30px; }
+            .ambient-glow { width: 300px; height: 300px; }
+            .lang-toggle { top: 70px; right: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Boot Sequence -->
+    <div id="boot-sequence">
+        <div class="imperial-logo"></div>
+        <div class="boot-text" data-de="INITIALISIERE IMPERIALES KOMMANDO..." data-en="INITIALIZING IMPERIAL COMMAND...">INITIALISIERE IMPERIALES KOMMANDO...</div>
+        <div class="boot-text" data-de="LADE TAKTISCHE DATENBANK..." data-en="LOADING TACTICAL DATABASE...">LADE TAKTISCHE DATENBANK...</div>
+        <div class="boot-text" data-de="STELLE SICHERE VERBINDUNG HER..." data-en="ESTABLISHING SECURE UPLINK...">STELLE SICHERE VERBINDUNG HER...</div>
+        <div class="boot-progress">
+            <div class="boot-progress-bar" id="boot-bar"></div>
+        </div>
+        <div class="boot-text" style="color: var(--imperial-gold);" data-de="IMPERIALES PROTOKOLL v7.77" data-en="IMPERIAL PROTOCOL v7.77">IMPERIALES PROTOKOLL v7.77</div>
+    </div>
+
+    <!-- Language Toggle -->
+    <button class="lang-toggle" onclick="toggleLanguage()">
+        <span id="lang-text">DE / EN</span>
+    </button>
+
+    <!-- Fullscreen Button -->
+    <button class="fullscreen-btn" onclick="toggleFullscreen()" title="Vollbild / Fullscreen">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+        </svg>
+    </button>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 class="font-orbitron text-gold-text text-lg mb-4" id="modal-title">BESTÄTIGUNG</h3>
+            <p class="text-gray-300 text-sm mb-6 font-mono-tech" id="modal-message">Möchten Sie diesen Befehl ausführen?</p>
+            <div class="flex gap-3 justify-end">
+                <button class="px-4 py-2 border border-gray-600 text-gray-400 text-xs hover:bg-gray-800 transition-all font-mono-tech" onclick="closeModal()" data-de="ABBRECHEN" data-en="CANCEL">ABBRECHEN</button>
+                <button class="px-4 py-2 bg-red-900/50 border border-red-500 text-red-400 text-xs hover:bg-red-900 transition-all font-mono-tech" onclick="confirmAction()" data-de="AUSFÜHREN" data-en="EXECUTE">AUSFÜHREN</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Interface -->
+    <div id="main-interface">
+        <!-- Background Elements -->
+        <div class="grid-overlay"></div>
+        <div class="ambient-glow" id="ambient-glow"></div>
+
+        <!-- Header -->
+        <header class="fixed top-0 w-full z-50 px-6 py-4 bg-gradient-to-b from-black/90 to-transparent border-b border-red-900/30">
+            <div class="flex justify-between items-center max-w-7xl mx-auto">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 border-2 border-red-800 rotate-45 flex items-center justify-center shadow-[0_0_20px_rgba(139,0,0,0.5)]">
+                        <span class="font-orbitron text-gold text-xl font-bold -rotate-45 text-[#D4AF37]">I</span>
+                    </div>
+                    <div>
+                        <h1 class="font-orbitron text-2xl tracking-widest gold-text glitch" data-text="IMPERIAL" data-de="IMPERIAL" data-en="IMPERIAL">IMPERIAL</h1>
+                        <p class="text-xs text-red-500/60 font-mono-tech tracking-[0.3em]" data-de="SEKTOR 7 KOMMANDO" data-en="SECTOR 7 COMMAND">SEKTOR 7 KOMMANDO</p>
+                    </div>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <div class="text-right">
+                        <div class="text-xs text-gray-500 font-mono-tech" data-de="KOMMANDO BEFUGNIS" data-en="COMMAND AUTHORITY">KOMMANDO BEFUGNIS</div>
+                        <div class="gold-text font-mono-tech text-sm" data-de="GENERAL KLASSE A" data-en="GENERAL CLASS A">GENERAL KLASSE A</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-gray-500 font-mono-tech" data-de="SYSTEM STATUS" data-en="SYSTEM STATUS">SYSTEM STATUS</div>
+                        <div class="text-emerald-400 text-sm font-bold tracking-wider flex items-center justify-end gap-2">
+                            <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_#00ff88]"></span>
+                            <span data-de="OPERATIV" data-en="OPERATIONAL">OPERATIV</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-gray-500 font-mono-tech" data-de="KRIEGSKASSE" data-en="WAR CHEST">KRIEGSKASSE</div>
+                        <div class="gold-text font-mono-tech text-lg">₿ 47,293,847</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="pt-24 pb-12 px-6 h-screen overflow-y-auto overflow-x-hidden">
+            <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Left Column: Tactical Map & Logistics -->
+                <div class="lg:col-span-5 space-y-6">
+                    
+                    <!-- Enhanced Tactical Map -->
+                    <div class="glass-panel rounded-lg p-6 float-1 h-[420px]" id="tactical-map-container">
+                        <div class="corner-accent ca-tl"></div>
+                        <div class="corner-accent ca-tr"></div>
+                        <div class="corner-accent ca-bl"></div>
+                        <div class="corner-accent ca-br"></div>
+                        <div class="scan-line"></div>
+                        
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-orbitron text-red-500 text-sm tracking-widest flex items-center gap-2">
+                                <span class="w-1 h-4 bg-red-600"></span>
+                                <span data-de="TAKTISCHE ÜBERSICHT" data-en="TACTICAL OVERVIEW">TAKTISCHE ÜBERSICHT</span>
+                            </h3>
+                            <div class="flex items-center gap-2 text-xs font-mono-tech">
+                                <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
+                                <span class="text-gray-400" data-de="LIVE BILD" data-en="LIVE FEED">LIVE BILD</span>
+                            </div>
+                        </div>
+                        
+                        <div class="tactical-map relative h-[320px] rounded overflow-hidden" id="map-area">
+                            <div class="map-grid"></div>
+                            
+                            <!-- Zones -->
+                            <div class="map-zone" style="top: 10%; left: 5%; width: 40%; height: 35%;">
+                                <div class="map-zone-label" data-de="ZONE ALPHA" data-en="ZONE ALPHA">ZONE ALPHA</div>
+                            </div>
+                            <div class="map-zone" style="top: 55%; left: 50%; width: 45%; height: 40%;">
+                                <div class="map-zone-label" data-de="ZONE BETA" data-en="ZONE BETA">ZONE BETA</div>
+                            </div>
+                            
+                            <!-- Radar Sweep -->
+                            <div class="radar-sweep"></div>
+                            
+                            <!-- Supply Lines -->
+                            <div class="supply-line" style="top: 30%; left: 25%; width: 150px; transform: rotate(25deg);"></div>
+                            <div class="supply-line" style="top: 60%; left: 30%; width: 120px; transform: rotate(-15deg);"></div>
+                            
+                            <!-- Tactical Units -->
+                            <div class="tactical-unit unit-friendly" style="top: 25%; left: 20%;" onclick="selectUnit('Alpha Company', 'friendly')" title="Alpha Kompanie">A</div>
+                            <div class="tactical-unit unit-friendly" style="top: 45%; left: 35%;" onclick="selectUnit('Bravo Squad', 'friendly')" title="Bravo Trupp">B</div>
+                            <div class="tactical-unit unit-enemy" style="top: 20%; left: 60%;" onclick="selectUnit('Hostile Armor', 'enemy')" title="Feindliche Panzer">⚔</div>
+                            <div class="tactical-unit unit-enemy" style="top: 70%; left: 75%;" onclick="selectUnit('Enemy Infantry', 'enemy')" title="Feindliche Infanterie">⚔</div>
+                            <div class="tactical-unit unit-neutral" style="top: 50%; left: 70%;" onclick="selectUnit('Supply Depot', 'neutral')" title="Versorgungsdepot">★</div>
+                            
+                            <!-- Map Legend -->
+                            <div class="absolute bottom-2 right-2 bg-black/60 p-2 rounded border border-red-900/30 text-[10px] font-mono-tech">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    <span class="text-gray-400" data-de="VERBÜNDET" data-en="FRIENDLY">VERBÜNDET</span>
+                                </div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                                    <span class="text-gray-400" data-de="FEINDLICH" data-en="HOSTILE">FEINDLICH</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-yellow-500"></span>
+                                    <span class="text-gray-400" data-de="ZIEL" data-en="OBJECTIVE">ZIEL</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Logistics & Supply -->
+                    <div class="glass-panel rounded-lg p-6 float-2">
+                        <div class="corner-accent ca-tl"></div>
+                        <div class="corner-accent ca-tr"></div>
+                        <div class="corner-accent ca-bl"></div>
+                        <div class="corner-accent ca-br"></div>
+                        
+                        <h3 class="font-orbitron text-red-500 text-sm tracking-widest mb-4 flex items-center gap-2">
+                            <span class="w-1 h-4 bg-red-600"></span>
+                            <span data-de="LOGISTIK STATUS" data-en="LOGISTICS STATUS">LOGISTIK STATUS</span>
+                        </h3>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center p-2 bg-black/30 rounded border border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-all" onclick="showDetail('fuel')">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xl">⛽</span>
+                                    <div>
+                                        <div class="text-sm text-gray-300" data-de="Kraftstoffreserven" data-en="Fuel Reserves">Kraftstoffreserven</div>
+                                        <div class="text-xs text-gray-500" data-de="Depot Sektor 7" data-en="Sector 7 Depot">Depot Sektor 7</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="gold-text font-mono-tech">78%</div>
+                                    <div class="text-xs text-emerald-400" data-de="STABIL" data-en="STABLE">STABIL</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-2 bg-black/30 rounded border border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-all" onclick="showDetail('rations')">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xl">🍖</span>
+                                    <div>
+                                        <div class="text-sm text-gray-300" data-de="Lebensmittel" data-en="Rations">Lebensmittel</div>
+                                        <div class="text-xs text-gray-500" data-de="14-Tage Vorrat" data-en="14-Day Supply">14-Tage Vorrat</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="gold-text font-mono-tech">92%</div>
+                                    <div class="text-xs text-emerald-400" data-de="AUSREICHEND" data-en="ADEQUATE">AUSREICHEND</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-2 bg-black/30 rounded border border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-all" onclick="showDetail('parts')">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xl">🔧</span>
+                                    <div>
+                                        <div class="text-sm text-gray-300" data-de="Ersatzteile" data-en="Spare Parts">Ersatzteile</div>
+                                        <div class="text-xs text-gray-500" data-de="Mechanisch" data-en="Mechanical">Mechanisch</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="gold-text font-mono-tech">45%</div>
+                                    <div class="text-xs text-yellow-400" data-de="NIEDRIG" data-en="LOW STOCK">NIEDRIG</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center p-2 bg-black/30 rounded border border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-all" onclick="showDetail('medical')">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xl">💊</span>
+                                    <div>
+                                        <div class="text-sm text-gray-300" data-de="Medizinische Vorräte" data-en="Medical Supplies">Medizinische Vorräte</div>
+                                        <div class="text-xs text-gray-500" data-de="Feldausrüstung" data-en="Field Kits">Feldausrüstung</div>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="gold-text font-mono-tech">63%</div>
+                                    <div class="text-xs text-emerald-400" data-de="OPERATIV" data-en="OPERATIONAL">OPERATIV</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weather & Environment -->
+                    <div class="glass-panel rounded-lg p-6 float-3">
+                        <div class="corner-accent ca-tl"></div>
+                        <div class="corner-accent ca-tr"></div>
+                        <div class="corner-accent ca-bl"></div>
+                        <div class="corner-accent ca-br"></div>
+                        
+                        <h3 class="font-orbitron text-red-500 text-sm tracking-widest mb-4 flex items-center gap-2">
+                            <span class="w-1 h-4 bg-red-600"></span>
+                            <span data-de="UMWELTBEDINGUNGEN" data-en="ENVIRONMENTAL">UMWELTBEDINGUNGEN</span>
+                        </h3>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center p-3 bg-black/30 rounded border border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-all" onclick="showWeatherDetail()">
+                                <div class="text-2xl mb-1">🌫️</div>
+                                <div class="text-xs text-gray-400" data-de="SICHTWEITE" data-en="VISIBILITY">SICHTWEITE</div>
+                                <div class="text-sm gold-text font-mono-tech">4.2 KM</div>
+                            </div>
+                            <div class="text-center p-3 bg-black/30 rounded border border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-all" onclick="showWeatherDetail()">
+                                <div class="text-2xl mb-1">💨</div>
+                                <div class="text-xs text-gray-400" data-de="WIND" data-en="WIND">WIND</div>
+                                <div class="text-sm gold-text font-mono-tech">NE 12KT</div>
+                            </div>
+                            <div class="text-center p-3 bg-black/30 rounded border border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-all" onclick="showWeatherDetail()">
+                                <div class="text-2xl mb-1">🌡️</div>
+                                <div class="text-xs text-gray-400" data-de="TEMPERATUR" data-en="TEMP">TEMPERATUR</div>
+                                <div class="text-sm gold-text font-mono-tech">-4°C</div>
+                            </div>
+                            <div class="text-center p-3 bg-black/30 rounded border border-red-900/20 cursor-pointer hover:bg-red-900/10 transition-all" onclick="showWeatherDetail()">
+                                <div class="text-2xl mb-1">📡</div>
+                                <div class="text-xs text-gray-400" data-de="FUNK" data-en="COMMS">FUNK</div>
+                                <div class="text-sm text-emerald-400 font-mono-tech" data-de="KLAR" data-en="CLEAR">KLAR</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center Column: Active Operations -->
+                <div class="lg:col-span-4 space-y-6">
+                    
+                    <!-- Main Operations Panel -->
+                    <div class="glass-panel rounded-lg p-6 float-1 h-full min-h-[600px]">
+                        <div class="corner-accent ca-tl"></div>
+                        <div class="corner-accent ca-tr"></div>
+                        <div class="corner-accent ca-bl"></div>
+                        <div class="corner-accent ca-br"></div>
+                        
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-orbitron text-red-500 text-sm tracking-widest flex items-center gap-2">
+                                <span class="w-1 h-4 bg-red-600"></span>
+                                <span data-de="AKTIVE OPERATIONEN" data-en="ACTIVE OPERATIONS">AKTIVE OPERATIONEN</span>
+                            </h3>
+                            <div class="flex gap-2">
+                                <button class="px-3 py-1 border border-red-500/30 text-red-400 text-xs hover:bg-red-500/10 transition-all font-mono-tech" data-de="FILTER" data-en="FILTER">FILTER</button>
+                                <button class="px-3 py-1 border border-yellow-500/30 text-yellow-400 text-xs hover:bg-yellow-500/10 transition-all font-mono-tech" data-de="BRIEFING" data-en="BRIEFING">BRIEFING</button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3" id="operations-list">
+                            <!-- Operation Cards -->
+                            <div class="glass-panel p-4 rounded cursor-pointer hover:border-red-500/50 transition-all group relative overflow-hidden border-l-4 border-l-emerald-400" onclick="selectOperation('OP-7749', 'Operation Eiserner Schild')">
+                                <div class="absolute inset-0 bg-gradient-to-r from-emerald-400/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div class="font-mono-tech gold-text text-lg">OP-7749</div>
+                                        <div class="text-gray-400 text-sm" data-de="Operation Eiserner Schild" data-en="Operation Iron Shield">Operation Eiserner Schild</div>
+                                        <div class="text-xs text-gray-500 mt-1" data-de="Sektor 7-Alpha | Verteidigung" data-en="Sector 7-Alpha | Defense">Sektor 7-Alpha | Verteidigung</div>
+                                    </div>
+                                    <span class="status-indicator status-combat" data-de="KAMPF" data-en="COMBAT">KAMPF</span>
+                                </div>
+                                <div class="flex items-center gap-4 mt-3 mb-2">
+                                    <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-emerald-400 w-[92%] shadow-[0_0_10px_#00ff88]"></div>
+                                    </div>
+                                    <span class="font-mono-tech text-emerald-400 text-sm">92%</span>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-500 font-mono-tech border-t border-gray-800 pt-2 mt-2">
+                                    <span data-de="VERLUSTE: 3%" data-en="CASUALTIES: 3%">VERLUSTE: 3%</span>
+                                    <span data-de="MORAL: HOCH" data-en="MORALE: HIGH">MORAL: HOCH</span>
+                                    <span>ETA: 04:23</span>
+                                </div>
+                            </div>
+
+                            <div class="glass-panel p-4 rounded cursor-pointer hover:border-red-500/50 transition-all group relative overflow-hidden border-l-4 border-l-yellow-400" onclick="selectOperation('OP-7750', 'Operation Leiser Schritt')">
+                                <div class="absolute inset-0 bg-gradient-to-r from-yellow-400/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div class="font-mono-tech gold-text text-lg">OP-7750</div>
+                                        <div class="text-gray-400 text-sm" data-de="Operation Leiser Schritt" data-en="Operation Silent Step">Operation Leiser Schritt</div>
+                                        <div class="text-xs text-gray-500 mt-1" data-de="Sektor 4-Delta | Aufklärung" data-en="Sector 4-Delta | Recon">Sektor 4-Delta | Aufklärung</div>
+                                    </div>
+                                    <span class="status-indicator status-patrol" data-de="PATROUILLE" data-en="PATROL">PATROUILLE</span>
+                                </div>
+                                <div class="flex items-center gap-4 mt-3 mb-2">
+                                    <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-yellow-400 w-[45%]"></div>
+                                    </div>
+                                    <span class="font-mono-tech text-yellow-400 text-sm">45%</span>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-500 font-mono-tech border-t border-gray-800 pt-2 mt-2">
+                                    <span data-de="VERLUSTE: 0%" data-en="CASUALTIES: 0%">VERLUSTE: 0%</span>
+                                    <span data-de="MORAL: STABIL" data-en="MORALE: STEADY">MORAL: STABIL</span>
+                                    <span>ETA: 12:45</span>
+                                </div>
+                            </div>
+
+                            <div class="glass-panel p-4 rounded cursor-pointer hover:border-red-500/50 transition-all group relative overflow-hidden border-l-4 border-l-red-500 animate-pulse" onclick="selectOperation('OP-7751', 'Operation Gebrochener Speer')">
+                                <div class="absolute inset-0 bg-gradient-to-r from-red-400/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div class="font-mono-tech gold-text text-lg">OP-7751</div>
+                                        <div class="text-gray-400 text-sm" data-de="Operation Gebrochener Speer" data-en="Operation Broken Spear">Operation Gebrochener Speer</div>
+                                        <div class="text-xs text-gray-500 mt-1" data-de="Sektor 9-Gamma | Extraktion" data-en="Sector 9-Gamma | Extraction">Sektor 9-Gamma | Extraktion</div>
+                                    </div>
+                                    <span class="status-indicator status-combat" data-de="KRITISCH" data-en="CRITICAL">KRITISCH</span>
+                                </div>
+                                <div class="flex items-center gap-4 mt-3 mb-2">
+                                    <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-red-500 w-[12%] shadow-[0_0_10px_#ff0040]"></div>
+                                    </div>
+                                    <span class="font-mono-tech text-red-400 text-sm">12%</span>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-500 font-mono-tech border-t border-gray-800 pt-2 mt-2">
+                                    <span data-de="VERLUSTE: 47%" data-en="CASUALTIES: 47%">VERLUSTE: 47%</span>
+                                    <span data-de="MORAL: KRITISCH" data-en="MORALE: CRITICAL">MORAL: KRITISCH</span>
+                                    <span class="text-red-400 animate-pulse" data-de="DRINGEND" data-en="URGENT">DRINGEND</span>
+                                </div>
+                            </div>
+
+                            <div class="glass-panel p-4 rounded cursor-pointer hover:border-red-500/50 transition-all group relative overflow-hidden border-l-4 border-l-emerald-400" onclick="selectOperation('OP-7752', 'Operation Goldene Dämmerung')">
+                                <div class="absolute inset-0 bg-gradient-to-r from-emerald-400/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div class="font-mono-tech gold-text text-lg">OP-7752</div>
+                                        <div class="text-gray-400 text-sm" data-de="Operation Goldene Dämmerung" data-en="Operation Golden Dawn">Operation Goldene Dämmerung</div>
+                                        <div class="text-xs text-gray-500 mt-1" data-de="Sektor 2-Beta | Versorgung" data-en="Sector 2-Beta | Supply">Sektor 2-Beta | Versorgung</div>
+                                    </div>
+                                    <span class="status-indicator status-standby" data-de="BEREIT" data-en="STANDBY">BEREIT</span>
+                                </div>
+                                <div class="flex items-center gap-4 mt-3 mb-2">
+                                    <div class="flex-1 h-2 bg-gray-800 rounded-full overflow-hidden">
+                                        <div class="h-full bg-emerald-400 w-[78%]"></div>
+                                    </div>
+                                    <span class="font-mono-tech text-emerald-400 text-sm">78%</span>
+                                </div>
+                                <div class="flex justify-between text-xs text-gray-500 font-mono-tech border-t border-gray-800 pt-2 mt-2">
+                                    <span data-de="VERLUSTE: 0%" data-en="CASUALTIES: 0%">VERLUSTE: 0%</span>
+                                    <span data-de="MORAL: HOCH" data-en="MORALE: HIGH">MORAL: HOCH</span>
+                                    <span>ETA: 02:15</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Command -->
+                        <div class="mt-6 pt-4 border-t border-red-900/30">
+                            <div class="grid grid-cols-2 gap-3">
+                                <button class="glass-panel py-3 px-4 rounded text-red-400 text-xs font-bold tracking-wider hover:bg-red-400/20 hover:border-red-400 transition-all active:scale-95 font-mono-tech" onclick="requestReinforcements()" data-de="VERSTÄRKUNG ANFORDERN" data-en="REQUEST REINFORCEMENTS">
+                                    VERSTÄRKUNG
+                                </button>
+                                <button class="glass-panel py-3 px-4 rounded text-yellow-400 text-xs font-bold tracking-wider hover:bg-yellow-400/20 hover:border-yellow-400 transition-all active:scale-95 font-mono-tech" onclick="requestAirSupport()" data-de="LUFTUNTERSTÜTZUNG" data-en="AIR SUPPORT">
+                                    LUFTUNTERSTÜTZUNG
+                                </button>
+                                <button class="glass-panel py-3 px-4 rounded text-emerald-400 text-xs font-bold tracking-wider hover:bg-emerald-400/20 hover:border-emerald-400 transition-all active:scale-95 font-mono-tech" onclick="requestMedevac()" data-de="MEDIZINISCHE EVAKUIERUNG" data-en="MEDICAL EVAC">
+                                    MED-EVAC
+                                </button>
+                                <button class="glass-panel py-3 px-4 rounded text-gray-400 text-xs font-bold tracking-wider hover:bg-gray-400/20 hover:border-gray-400 transition-all active:scale-95 font-mono-tech" onclick="requestRetreat()" data-de="RÜCKZUG" data-en="RETREAT">
+                                    RÜCKZUG
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Unit Status & Communications -->
+                <div class="lg:col-span-3 space-y-6">
+                    
+                    <!-- Unit Status -->
+                    <div class="glass-panel rounded-lg p-6 float-1">
+                        <div class="corner-accent ca-tl"></div>
+                        <div class="corner-accent ca-tr"></div>
+                        <div class="corner-accent ca-bl"></div>
+                        <div class="corner-accent ca-br"></div>
+                        
+                        <h3 class="font-orbitron text-red-500 text-sm tracking-widest mb-4 flex items-center gap-2">
+                            <span class="w-1 h-4 bg-red-600"></span>
+                            <span data-de="EINSATZBEREITSCHAFT" data-en="UNIT READINESS">EINSATZBEREITSCHAFT</span>
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="p-3 bg-black/30 rounded border border-emerald-400/30 cursor-pointer hover:bg-emerald-900/10 transition-all" onclick="showUnitDetail('Alpha')">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-emerald-400 font-bold text-sm" data-de="Alpha Kompanie" data-en="Alpha Company">Alpha Kompanie</span>
+                                    <span class="text-xs text-emerald-400 font-mono-tech">94% BEREIT</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="relative w-10 h-10">
+                                        <svg class="progress-ring w-10 h-10" viewBox="0 0 40 40">
+                                            <circle cx="20" cy="20" r="16" fill="none" stroke="#1a1a24" stroke-width="3"/>
+                                            <circle cx="20" cy="20" r="16" fill="none" stroke="#00ff88" stroke-width="3" 
+                                                stroke-dasharray="100.5" stroke-dashoffset="6" class="progress-ring-circle"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 text-xs text-gray-400">
+                                        <div class="flex justify-between"><span data-de="Mannstärke:" data-en="Manpower:">Mannstärke:</span> <span class="text-gray-300">142/150</span></div>
+                                        <div class="flex justify-between"><span data-de="Fahrzeuge:" data-en="Vehicles:">Fahrzeuge:</span> <span class="text-gray-300">12/12</span></div>
+                                        <div class="flex justify-between"><span data-de="Munition:" data-en="Ammo:">Munition:</span> <span class="text-emerald-400" data-de="VOLL" data-en="FULL">VOLL</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-black/30 rounded border border-yellow-400/30 cursor-pointer hover:bg-yellow-900/10 transition-all" onclick="showUnitDetail('Bravo')">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-yellow-400 font-bold text-sm" data-de="Bravo Bataillon" data-en="Bravo Battalion">Bravo Bataillon</span>
+                                    <span class="text-xs text-yellow-400 font-mono-tech">68% BEREIT</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="relative w-10 h-10">
+                                        <svg class="progress-ring w-10 h-10" viewBox="0 0 40 40">
+                                            <circle cx="20" cy="20" r="16" fill="none" stroke="#1a1a24" stroke-width="3"/>
+                                            <circle cx="20" cy="20" r="16" fill="none" stroke="#ffb700" stroke-width="3" 
+                                                stroke-dasharray="100.5" stroke-dashoffset="32" class="progress-ring-circle"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 text-xs text-gray-400">
+                                        <div class="flex justify-between"><span data-de="Mannstärke:" data-en="Manpower:">Mannstärke:</span> <span class="text-gray-300">203/300</span></div>
+                                        <div class="flex justify-between"><span data-de="Fahrzeuge:" data-en="Vehicles:">Fahrzeuge:</span> <span class="text-yellow-400">18/24</span></div>
+                                        <div class="flex justify-between"><span data-de="Munition:" data-en="Ammo:">Munition:</span> <span class="text-yellow-400" data-de="NIEDRIG" data-en="LOW">NIEDRIG</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-3 bg-black/30 rounded border border-red-400/30 cursor-pointer hover:bg-red-900/10 transition-all" onclick="showUnitDetail('Gamma')">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-red-400 font-bold text-sm" data-de="Gamma Trupp" data-en="Gamma Squad">Gamma Trupp</span>
+                                    <span class="text-xs text-red-400 font-mono-tech animate-pulse">23% BEREIT</span>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="relative w-10 h-10">
+                                        <svg class="progress-ring w-10 h-10" viewBox="0 0 40 40">
+                                            <circle cx="20" cy="20" r="16" fill="none" stroke="#1a1a24" stroke-width="3"/>
+                                            <circle cx="20" cy="20" r="16" fill="none" stroke="#ff0040" stroke-width="3" 
+                                                stroke-dasharray="100.5" stroke-dashoffset="77" class="progress-ring-circle"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 text-xs text-gray-400">
+                                        <div class="flex justify-between"><span data-de="Mannstärke:" data-en="Manpower:">Mannstärke:</span> <span class="text-red-400">7/30</span></div>
+                                        <div class="flex justify-between"><span data-de="Fahrzeuge:" data-en="Vehicles:">Fahrzeuge:</span> <span class="text-red-400">1/6</span></div>
+                                        <div class="flex justify-between"><span data-de="Munition:" data-en="Ammo:">Munition:</span> <span class="text-red-400" data-de="KRITISCH" data-en="CRITICAL">KRITISCH</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Communications -->
+                    <div class="glass-panel rounded-lg p-6 float-2">
+                        <div class="corner-accent ca-tl"></div>
+                        <div class="corner-accent ca-tr"></div>
+                        <div class="corner-accent ca-bl"></div>
+                        <div class="corner-accent ca-br"></div>
+                        
+                        <h3 class="font-orbitron text-red-500 text-sm tracking-widest mb-4 flex items-center gap-2">
+                            <span class="w-1 h-4 bg-red-600"></span>
+                            <span data-de="FUNKVERKEHR" data-en="COMMS TRAFFIC">FUNKVERKEHR</span>
+                        </h3>
+                        
+                        <div class="space-y-3 font-mono-tech text-xs h-64 overflow-hidden relative" id="comms-feed">
+                            <div class="p-2 bg-black/40 rounded border-l-2 border-emerald-400 cursor-pointer hover:bg-emerald-900/10 transition-all" onclick="showMessageDetail('alpha')">
+                                <div class="flex justify-between text-gray-500 mb-1">
+                                    <span>[ALPHA-1]</span>
+                                    <span>14:23:01</span>
+                                </div>
+                                <div class="text-gray-300" data-de="„Perimeter gesichert. Keine feindlichen Kontakte." data-en="&quot;Perimeter secure. No hostile contacts.&quot;">„Perimeter gesichert. Keine feindlichen Kontakte."</div>
+                            </div>
+                            <div class="p-2 bg-black/40 rounded border-l-2 border-yellow-400 cursor-pointer hover:bg-yellow-900/10 transition-all" onclick="showMessageDetail('command')">
+                                <div class="flex justify-between text-gray-500 mb-1">
+                                    <span>[KOMMANDO]</span>
+                                    <span>14:22:45</span>
+                                </div>
+                                <div class="text-gray-300" data-de="„Verstanden. Beobachtung aufrechterhalten." data-en="&quot;Acknowledged. Maintain overwatch.&quot;">„Verstanden. Beobachtung aufrechterhalten."</div>
+                            </div>
+                            <div class="p-2 bg-black/40 rounded border-l-2 border-red-400 animate-pulse cursor-pointer hover:bg-red-900/10 transition-all" onclick="showMessageDetail('gamma')">
+                                <div class="flex justify-between text-gray-500 mb-1">
+                                    <span>[GAMMA-3]</span>
+                                    <span>14:21:12</span>
+                                </div>
+                                <div class="text-red-300" data-de="„Wir werden beschossen! Sofortige Evakuierung erforderlich!" data-en="&quot;Taking heavy fire! Immediate extraction required!&quot;">„Wir werden beschossen! Sofortige Evakuierung erforderlich!"</div>
+                            </div>
+                            <div class="p-2 bg-black/40 rounded border-l-2 border-gray-500 cursor-pointer hover:bg-gray-800 transition-all" onclick="showMessageDetail('aircom')">
+                                <div class="flex justify-between text-gray-500 mb-1">
+                                    <span>[LUFTWAFFE]</span>
+                                    <span>14:20:33</span>
+                                </div>
+                                <div class="text-gray-300" data-de="„Kampfhubschrauber ETA 5 Minuten. Position halten." data-en="&quot;Gunship ETA 5 minutes. Hold position.&quot;">„Kampfhubschrauber ETA 5 Minuten. Position halten."</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Equipment Status -->
+                    <div class="glass-panel rounded-lg p-6 float-3">
+                        <div class="corner-accent ca-tl"></div>
+                        <div class="corner-accent ca-tr"></div>
+                        <div class="corner-accent ca-bl"></div>
+                        <div class="corner-accent ca-br"></div>
+                        
+                        <h3 class="font-orbitron text-red-500 text-sm tracking-widest mb-4 flex items-center gap-2">
+                            <span class="w-1 h-4 bg-red-600"></span>
+                            <span data-de="AUSRÜSTUNG" data-en="EQUIPMENT">AUSRÜSTUNG</span>
+                        </h3>
+                        
+                        <div class="space-y-2 text-xs font-mono-tech">
+                            <div class="flex justify-between items-center p-2 bg-black/30 rounded cursor-pointer hover:bg-red-900/10 transition-all" onclick="showEquipmentDetail('tanks')">
+                                <span class="text-gray-400" data-de="Kampfpanzer" data-en="Main Battle Tanks">Kampfpanzer</span>
+                                <span class="text-emerald-400">14/16 <span data-de="EINSATZBEREIT" data-en="OPERATIONAL">EINSATZBEREIT</span></span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-black/30 rounded cursor-pointer hover:bg-red-900/10 transition-all" onclick="showEquipmentDetail('apcs')">
+                                <span class="text-gray-400" data-de="Schützenpanzer" data-en="APCs">Schützenpanzer</span>
+                                <span class="text-yellow-400">8/12 <span data-de="EINSATZBEREIT" data-en="OPERATIONAL">EINSATZBEREIT</span></span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-black/30 rounded cursor-pointer hover:bg-red-900/10 transition-all" onclick="showEquipmentDetail('gunships')">
+                                <span class="text-gray-400" data-de="Kampfhubschrauber" data-en="Gunships">Kampfhubschrauber</span>
+                                <span class="text-emerald-400">6/6 <span data-de="EINSATZBEREIT" data-en="OPERATIONAL">EINSATZBEREIT</span></span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-black/30 rounded cursor-pointer hover:bg-red-900/10 transition-all" onclick="showEquipmentDetail('drones')">
+                                <span class="text-gray-400" data-de="Drohnen" data-en="Drones">Drohnen</span>
+                                <span class="text-red-400">3/8 <span data-de="EINSATZBEREIT" data-en="OPERATIONAL">EINSATZBEREIT</span></span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-black/30 rounded cursor-pointer hover:bg-red-900/10 transition-all" onclick="showEquipmentDetail('artillery')">
+                                <span class="text-gray-400" data-de="Artillerie" data-en="Artillery">Artillerie</span>
+                                <span class="text-emerald-400">4/4 <span data-de="EINSATZBEREIT" data-en="OPERATIONAL">EINSATZBEREIT</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="fixed bottom-0 w-full px-6 py-3 bg-gradient-to-t from-black/90 to-transparent z-40 border-t border-red-900/30">
+            <div class="max-w-7xl mx-auto flex justify-between items-center text-xs font-mono-tech text-gray-600">
+                <div class="flex items-center gap-4">
+                    <span data-de="SICHERE VERBINDUNG: VERSCHLÜSSELT" data-en="SECURE UPLINK: ENCRYPTED">SICHERE VERBINDUNG: VERSCHLÜSSELT</span>
+                    <span class="w-1 h-1 bg-red-500 rounded-full animate-pulse"></span>
+                    <span data-de="KOMMANDO BEFUGNIS: VERIFIZIERT" data-en="COMMAND AUTHORITY: VERIFIED">KOMMANDO BEFUGNIS: VERIFIZIERT</span>
+                </div>
+                <div class="flex items-center gap-6">
+                    <span>LATENCY: 12ms</span>
+                    <span>UPTIME: 47:23:11</span>
+                    <span class="gold-text" data-de="SEKTOR 7-KOMMANDO" data-en="SECTOR 7-COMMAND">SEKTOR 7-KOMMANDO</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Language State
+        let currentLang = 'de';
+        
+        // Translations
+        const translations = {
+            de: {
+                reinforcementsTitle: 'VERSTÄRKUNG ANGEFORDERT',
+                reinforcementsMsg: 'Panzerabteilung Alpha wird zu Ihren Koordinaten entsandt. ETA: 8 Minuten.',
+                airSupportTitle: 'LUFTUNTERSTÜTZUNG BESTÄTIGT',
+                airSupportMsg: 'Angriffshubschrauber-Staffel im Anflug. Feuerfreigabe erteilt.',
+                medevacTitle: 'MED-EVAK EINGELEITET',
+                medevacMsg: 'Rettungshubschrauber unterwegs zu Gamma-Trupp. Halten Sie Position!',
+                retreatTitle: 'RÜCKZUGSBERECHTIGUNG',
+                retreatMsg: 'Erlaubnis zum taktischen Rückzug erteilt. Rallyepunkt: Alpha-Zone.',
+                unitSelected: 'EINHEIT AUSGEWÄHLT',
+                operationSelected: 'OPERATION AUSGEWÄHLT',
+                detailTitle: 'DETAILANSICHT',
+                confirmTitle: 'BEFEHL BESTÄTIGEN',
+                execute: 'AUSFÜHREN',
+                cancel: 'ABBRECHEN'
+            },
+            en: {
+                reinforcementsTitle: 'REINFORCEMENTS REQUESTED',
+                reinforcementsMsg: 'Tank division Alpha dispatched to your coordinates. ETA: 8 minutes.',
+                airSupportTitle: 'AIR SUPPORT CONFIRMED',
+                airSupportMsg: 'Attack helicopter squadron inbound. Weapons free authorized.',
+                medevacTitle: 'MED-EVAC INITIATED',
+                medevacMsg: 'Rescue helicopter en route to Gamma Squad. Hold position!',
+                retreatTitle: 'RETREAT AUTHORIZED',
+                retreatMsg: 'Tactical withdrawal permitted. Rally point: Alpha Zone.',
+                unitSelected: 'UNIT SELECTED',
+                operationSelected: 'OPERATION SELECTED',
+                detailTitle: 'DETAIL VIEW',
+                confirmTitle: 'CONFIRM COMMAND',
+                execute: 'EXECUTE',
+                cancel: 'CANCEL'
+            }
+        };
+
+        // Boot Sequence
+        window.addEventListener('load', () => {
+            const bootBar = document.getElementById('boot-bar');
+            const bootSequence = document.getElementById('boot-sequence');
+            const mainInterface = document.getElementById('main-interface');
+            
+            let progress = 0;
+            const bootInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(bootInterval);
+                    
+                    setTimeout(() => {
+                        bootSequence.style.opacity = '0';
+                        setTimeout(() => {
+                            bootSequence.style.display = 'none';
+                            mainInterface.style.opacity = '1';
+                            startCommsFeed();
+                        }, 1000);
+                    }, 500);
+                }
+                bootBar.style.width = progress + '%';
+            }, 200);
+        });
+
+        // Toggle Language
+        function toggleLanguage() {
+            currentLang = currentLang === 'de' ? 'en' : 'de';
+            document.getElementById('lang-text').textContent = currentLang === 'de' ? 'DE / EN' : 'EN / DE';
+            
+            // Update all elements with data-de and data-en
+            document.querySelectorAll('[data-de][data-en]').forEach(el => {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = el.getAttribute(`data-${currentLang}`);
+                } else {
+                    el.textContent = el.getAttribute(`data-${currentLang}`);
+                }
+            });
+            
+            showToast(currentLang === 'de' ? 'SPRACHE GEÄNDERT: DEUTSCH' : 'LANGUAGE CHANGED: ENGLISH', 'success');
+        }
+
+        // Toast Notification
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="font-bold mb-1 ${type === 'success' ? 'text-emerald-400' : type === 'warning' ? 'text-yellow-400' : type === 'error' ? 'text-red-400' : 'text-gold-text'}">
+                    ${type === 'success' ? '✓' : type === 'warning' ? '⚠' : type === 'error' ? '✗' : 'ℹ'} SYSTEM
+                </div>
+                <div class="text-gray-300">${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOutToast 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Modal Functions
+        let pendingAction = null;
+
+        function showModal(title, message, action) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            document.getElementById('modal-overlay').classList.add('active');
+            pendingAction = action;
+        }
+
+        function closeModal(event) {
+            if (!event || event.target.id === 'modal-overlay' || event.target.textContent.includes('ABBRECHEN') || event.target.textContent.includes('CANCEL')) {
+                document.getElementById('modal-overlay').classList.remove('active');
+                pendingAction = null;
+            }
+        }
+
+        function confirmAction() {
+            if (pendingAction) {
+                pendingAction();
+                closeModal();
+            }
+        }
+
+        // Command Functions
+        function requestReinforcements() {
+            showModal(
+                translations[currentLang].confirmTitle,
+                currentLang === 'de' ? 'Verstärkung anfordern für Sektor 7?' : 'Request reinforcements for Sector 7?',
+                () => {
+                    showToast(translations[currentLang].reinforcementsTitle + '<br>' + translations[currentLang].reinforcementsMsg, 'success');
+                    createParticles(event);
+                }
+            );
+        }
+
+        function requestAirSupport() {
+            showModal(
+                translations[currentLang].confirmTitle,
+                currentLang === 'de' ? 'Luftunterstützung für aktives Zielgebiet?' : 'Air support for active target area?',
+                () => {
+                    showToast(translations[currentLang].airSupportTitle + '<br>' + translations[currentLang].airSupportMsg, 'warning');
+                    createParticles(event);
+                }
+            );
+        }
+
+        function requestMedevac() {
+            showModal(
+                translations[currentLang].confirmTitle,
+                currentLang === 'de' ? 'Medizinische Evakuierung für Gamma-Trupp?' : 'Medical evacuation for Gamma Squad?',
+                () => {
+                    showToast(translations[currentLang].medevacTitle + '<br>' + translations[currentLang].medevacMsg, 'error');
+                    createParticles(event);
+                }
+            );
+        }
+
+        function requestRetreat() {
+            showModal(
+                translations[currentLang].confirmTitle,
+                currentLang === 'de' ? 'Taktischen Rückzug authorisieren?' : 'Authorize tactical retreat?',
+                () => {
+                    showToast(translations[currentLang].retreatTitle + '<br>' + translations[currentLang].retreatMsg, 'warning');
+                    createParticles(event);
+                }
+            );
+        }
+
+        // Selection Functions
+        function selectUnit(unitName, type) {
+            const typeText = type === 'friendly' ? (currentLang === 'de' ? 'VERBÜNDET' : 'FRIENDLY') : 
+                            type === 'enemy' ? (currentLang === 'de' ? 'FEINDLICH' : 'HOSTILE') : 
+                            (currentLang === 'de' ? 'NEUTRAL' : 'NEUTRAL');
+            showToast(`${translations[currentLang].unitSelected}<br>${unitName} [${typeText}]`, 'info');
+            createParticles(event);
+        }
+
+        function selectOperation(opId, opName) {
+            showToast(`${translations[currentLang].operationSelected}<br>${opId}: ${opName}`, 'info');
+            triggerGlitch(event.currentTarget);
+        }
+
+        function showDetail(type) {
+            const details = {
+                de: {
+                    fuel: 'Kraftstoffdepot Sektor 7<br>Vorrat: 45.000 Liter<br>Verbrauch: 3.200 L/Tag<br>Nächste Lieferung: T+2',
+                    rations: 'Feldküche Alpha<br>MRE-Pakete: 2.847<br>Frischwasser: 12.000 L<br>Moral-Bonus: +15%',
+                    parts: 'Werkstatt Kommando<br>Ersatzmotoren: 3<br>Panzerketten: 12<br>Elektronik: KRITISCH',
+                    medical: 'Feldlazarett<br>Ärzte: 4<br>Medikamente: AUSREICHEND<br>Verletzte: 23 (stabil)'
+                },
+                en: {
+                    fuel: 'Fuel Depot Sector 7<br>Stock: 45,000 Liters<br>Consumption: 3,200 L/Day<br>Next Delivery: T+2',
+                    rations: 'Field Kitchen Alpha<br>MRE Packs: 2,847<br>Fresh Water: 12,000 L<br>Morale Bonus: +15%',
+                    parts: 'Command Workshop<br>Spare Engines: 3<br>Track Links: 12<br>Electronics: CRITICAL',
+                    medical: 'Field Hospital<br>Doctors: 4<br>Supplies: ADEQUATE<br>Wounded: 23 (stable)'
+                }
+            };
+            showToast(translations[currentLang].detailTitle + '<br>' + details[currentLang][type], 'info');
+        }
+
+        function showWeatherDetail() {
+            const weather = currentLang === 'de' ? 
+                'Wetterbericht Sektor 7<br>Wolkenbedeckung: 45%<br>Niederschlag: 10%<br>Luftdruck: 1013 hPa<br>Empfohlene Taktik: Standard' :
+                'Weather Report Sector 7<br>Cloud Cover: 45%<br>Precipitation: 10%<br>Pressure: 1013 hPa<br>Recommended Tactics: Standard';
+            showToast(weather, 'info');
+        }
+
+        function showUnitDetail(unit) {
+            const details = {
+                de: {
+                    Alpha: 'Alpha Kompanie<br>Kommandant: Hauptmann Müller<br>Spezialisierung: Panzer<br>Erfahrung: VETERAN<br>Nächste Rotation: T+14',
+                    Bravo: 'Bravo Bataillon<br>Kommandant: Major Schmidt<br>Spezialisierung: Infanterie<br>Erfahrung: REGULÄR<br>Nächste Rotation: T+7',
+                    Gamma: 'Gamma Trupp<br>Kommandant: Leutnant Weber<br>Spezialisierung: Aufklärung<br>Erfahrung: ELITE<br>STATUS: EINGEKESSELT'
+                },
+                en: {
+                    Alpha: 'Alpha Company<br>Commander: Captain Müller<br>Specialization: Armor<br>Experience: VETERAN<br>Next Rotation: T+14',
+                    Bravo: 'Bravo Battalion<br>Commander: Major Schmidt<br>Specialization: Infantry<br>Experience: REGULAR<br>Next Rotation: T+7',
+                    Gamma: 'Gamma Squad<br>Commander: Lieutenant Weber<br>Specialization: Recon<br>Experience: ELITE<br>STATUS: PINNED DOWN'
+                }
+            };
+            showToast(details[currentLang][unit], unit === 'Gamma' ? 'error' : 'info');
+        }
+
+        function showMessageDetail(source) {
+            const messages = {
+                de: {
+                    alpha: 'Ursprung: Alpha-1<br>Verschlüsselung: AES-256<br>Priorität: NORMAL<br>Bestätigung: ERFORDERLICH',
+                    command: 'Ursprung: Kommando<br>Absender: Generalstab<br>Klassifizierung: GEHEIM<br>Antwort: OPTIONAL',
+                    gamma: 'Ursprung: Gamma-3<br>Signalstärke: SCHWACH<br>Batterie: 23%<br>LETZTE NACHRICHT VOR 3 MIN',
+                    aircom: 'Ursprung: Luftwaffe<br>Pilot: Oberst Richter<br>Flugzeug: AH-64 Apache<br>Bewaffnung: HELLFIRE'
+                },
+                en: {
+                    alpha: 'Origin: Alpha-1<br>Encryption: AES-256<br>Priority: NORMAL<br>Acknowledgment: REQUIRED',
+                    command: 'Origin: Command<br>Sender: General Staff<br>Classification: SECRET<br>Reply: OPTIONAL',
+                    gamma: 'Origin: Gamma-3<br>Signal Strength: WEAK<br>Battery: 23%<br>LAST MESSAGE 3 MIN AGO',
+                    aircom: 'Origin: Air Force<br>Pilot: Colonel Richter<br>Aircraft: AH-64 Apache<br>Armament: HELLFIRE'
+                }
+            };
+            showToast(messages[currentLang][source], source === 'gamma' ? 'error' : 'info');
+        }
+
+        function showEquipmentDetail(type) {
+            const details = {
+                de: {
+                    tanks: 'Leopard 2A7<br>Panzerung: COMPOSITE<br>Hauptgeschütz: 120mm<br>Munition: 42 Schuss<br>Besatzung: 4',
+                    apcs: 'Marder 1A5<br>Panzerung: STEEL<br>Bewaffnung: 25mm MK<br>Transport: 6 Soldaten<br>Status: 2 IN WARTUNG',
+                    gunships: 'AH-64 Apache<br>Bewaffnung: HELLFIRE/CHAINGUN<br>Reichweite: 480km<br>Flugzeit: 2.5h<br>ALLE EINSATZBEREIT',
+                    drones: 'MQ-9 Reaper<br>5 IN WARTUNG<br>3 EINSATZBEREIT<br>Reichweite: 1,850km<br>Nutzlast: HELLFIRE',
+                    artillery: 'Panzerhaubitze 2000<br>Kaliber: 155mm<br>Reichweite: 40km<br>Feuerrate: 10/min<br>ALLE EINSATZBEREIT'
+                },
+                en: {
+                    tanks: 'Leopard 2A7<br>Armor: COMPOSITE<br>Main Gun: 120mm<br>Ammo: 42 Rounds<br>Crew: 4',
+                    apcs: 'Marder 1A5<br>Armor: STEEL<br>Armament: 25mm MK<br>Capacity: 6 Soldiers<br>Status: 2 IN MAINTENANCE',
+                    gunships: 'AH-64 Apache<br>Armament: HELLFIRE/CHAINGUN<br>Range: 480km<br>Flight Time: 2.5h<br>ALL OPERATIONAL',
+                    drones: 'MQ-9 Reaper<br>5 IN MAINTENANCE<br>3 OPERATIONAL<br>Range: 1,850km<br>Payload: HELLFIRE',
+                    artillery: 'Panzerhaubitze 2000<br>Caliber: 155mm<br>Range: 40km<br>Fire Rate: 10/min<br>ALL OPERATIONAL'
+                }
+            };
+            showToast(details[currentLang][type], 'info');
+        }
+
+        // Ambient Glow Follow
+        document.addEventListener('mousemove', (e) => {
+            const glow = document.getElementById('ambient-glow');
+            const x = e.clientX - 300;
+            const y = e.clientY - 300;
+            glow.style.left = x + 'px';
+            glow.style.top = y + 'px';
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            const glow = document.getElementById('ambient-glow');
+            const touch = e.touches[0];
+            const x = touch.clientX - 300;
+            const y = touch.clientY - 300;
+            glow.style.left = x + 'px';
+            glow.style.top = y + 'px';
+        });
+
+        // Glitch Effect
+        function triggerGlitch(element) {
+            element.classList.add('glitch', 'active');
+            setTimeout(() => {
+                element.classList.remove('active');
+            }, 300);
+        }
+
+        // Particle Burst
+        function createParticles(e) {
+            if (!e) return;
+            const count = 6;
+            const x = e.clientX || e.touches?.[0]?.clientX || window.innerWidth / 2;
+            const y = e.clientY || e.touches?.[0]?.clientY || window.innerHeight / 2;
+            
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                
+                const angle = (Math.PI * 2 * i) / count;
+                const velocity = 30 + Math.random() * 30;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity;
+                
+                document.body.appendChild(particle);
+                
+                const animation = particle.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 500,
+                    easing: 'cubic-bezier(0, .9, .57, 1)'
+                });
+                
+                animation.onfinish = () => particle.remove();
+            }
+        }
+
+        // Communications Feed
+        function startCommsFeed() {
+            const feed = document.getElementById('comms-feed');
+            const messages = {
+                de: [
+                    { unit: '[ALPHA-2]', time: '14:24:33', text: 'Versorgungskonvoi erreicht Checkpoint 4.', type: 'emerald' },
+                    { unit: '[BRAVO-1]', time: '14:25:12', text: 'Feindliche Panzer bei Gitter 7-4-9 gesichtet.', type: 'yellow' },
+                    { unit: '[GAMMA-2]', time: '14:26:05', text: 'Sanitäter! Wir haben Verwundete!', type: 'red' },
+                    { unit: '[KOMMANDO]', time: '14:27:18', text: 'Alle Einheiten, Funkstille einhalten.', type: 'gray' }
+                ],
+                en: [
+                    { unit: '[ALPHA-2]', time: '14:24:33', text: 'Supply convoy arrived at Checkpoint 4.', type: 'emerald' },
+                    { unit: '[BRAVO-1]', time: '14:25:12', text: 'Enemy armor spotted at grid 7-4-9.', type: 'yellow' },
+                    { unit: '[GAMMA-2]', time: '14:26:05', text: 'Medic! We have wounded!', type: 'red' },
+                    { unit: '[COMMAND]', time: '14:27:18', text: 'All units, maintain radio silence.', type: 'gray' }
+                ]
+            };
+            
+            let index = 0;
+            setInterval(() => {
+                const msgs = messages[currentLang];
+                const msg = msgs[index % msgs.length];
+                const div = document.createElement('div');
+                div.className = `p-2 bg-black/40 rounded border-l-2 border-${msg.type}-400 slide-in cursor-pointer hover:bg-${msg.type}-900/10 transition-all`;
+                div.onclick = () => showMessageDetail(msg.unit.toLowerCase().replace(/[[\]]/g, '').replace('-', '').replace('kommando', 'command'));
+                div.innerHTML = `
+                    <div class="flex justify-between text-gray-500 mb-1">
+                        <span>${msg.unit}</span>
+                        <span>${msg.time}</span>
+                    </div>
+                    <div class="${msg.type === 'red' ? 'text-red-300' : 'text-gray-300'}">"${msg.text}"</div>
+                `;
+                
+                feed.insertBefore(div, feed.firstChild);
+                if (feed.children.length > 6) {
+                    feed.removeChild(feed.lastChild);
+                }
+                
+                index++;
+            }, 8000);
+        }
+
+        // Fullscreen Toggle
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Random Glitch
+        setInterval(() => {
+            const elements = document.querySelectorAll('.glitch');
+            const random = elements[Math.floor(Math.random() * elements.length)];
+            if (random && Math.random() > 0.7) {
+                triggerGlitch(random);
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
