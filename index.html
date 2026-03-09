@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Legion TD - Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #050508;
+            color: #fff;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            background: linear-gradient(180deg, #0a0a12 0%, #050508 100%);
+        }
+
+        /* Header - Glassmorphism */
+        #header {
+            background: rgba(20, 20, 35, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 10px 15px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid rgba(233, 69, 96, 0.3);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            z-index: 100;
+        }
+
+        .resource-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .resource {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .resource-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .gold { background: linear-gradient(135deg, #ffd700, #ffaa00); color: #000; }
+        .mythium { background: linear-gradient(135deg, #9b59b6, #8e44ad); color: #fff; }
+        .income { background: linear-gradient(135deg, #2ecc71, #27ae60); color: #fff; font-size: 11px; }
+        .workers { background: linear-gradient(135deg, #3498db, #2980b9); color: #fff; font-size: 11px; }
+
+        #waveDisplay {
+            text-align: center;
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.2), rgba(233, 69, 96, 0.1));
+            padding: 8px 20px;
+            border-radius: 25px;
+            border: 1px solid rgba(233, 69, 96, 0.5);
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.2);
+        }
+
+        #waveNumber {
+            font-size: 20px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #ff6b6b, #e94560);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+
+        #phaseText {
+            font-size: 12px;
+            color: #aaa;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        /* Game Area */
+        #gameArea {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: radial-gradient(ellipse at center, #0f0f1a 0%, #050508 100%);
+        }
+
+        #gameCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* Floating UI Elements */
+        #workerFab {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border: 3px solid rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(52, 152, 219, 0.4);
+            z-index: 50;
+        }
+
+        #workerFab .cost {
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: -2px;
+        }
+
+        #readyFab {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            border: none;
+            color: #fff;
+            font-weight: 800;
+            border-radius: 30px;
+            font-size: 18px;
+            box-shadow: 0 6px 30px rgba(233, 69, 96, 0.5);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        #readyFab.ready {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            box-shadow: 0 6px 30px rgba(46, 204, 113, 0.5);
+        }
+
+        #sendFab {
+            position: absolute;
+            bottom: 90px;
+            right: 20px;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            border: 3px solid rgba(255,255,255,0.3);
+            color: #fff;
+            font-size: 28px;
+            box-shadow: 0 6px 25px rgba(155, 89, 182, 0.5);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #sendFab.active {
+            display: flex;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Bottom Panel */
+        #bottomPanel {
+            background: rgba(15, 15, 25, 0.98);
+            border-top: 1px solid rgba(233, 69, 96, 0.3);
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+        }
+
+        #tabs {
+            display: flex;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 14px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #666;
+            border: none;
+            background: transparent;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .tab.active {
+            color: #e94560;
+            border-bottom-color: #e94560;
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        #panelContent {
+            height: 220px;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Unit Cards - Premium Design */
+        .unit-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .unit-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 12px 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .unit-card:active {
+            transform: scale(0.95);
+        }
+
+        .unit-card.selected {
+            border-color: #e94560;
+            background: linear-gradient(145deg, rgba(233, 69, 96, 0.3), rgba(233, 69, 96, 0.1));
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.4);
+        }
+
+        .unit-card.disabled {
+            opacity: 0.4;
+            filter: grayscale(0.8);
+        }
+
+        .unit-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            filter: blur(20px);
+            opacity: 0.5;
+            z-index: 0;
+        }
+
+        .unit-icon {
+            width: 44px;
+            height: 44px;
+            margin: 0 auto 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .unit-name {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #fff;
+        }
+
+        .unit-cost {
+            font-size: 12px;
+            font-weight: 800;
+            color: #ffd700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .unit-dps {
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 3px;
+        }
+
+        /* King Panel */
+        .king-section {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .king-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .king-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2980b9, #3498db);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 0 30px rgba(52, 152, 219, 0.4);
+            border: 3px solid rgba(255,255,255,0.2);
+        }
+
+        .king-stats {
+            flex: 1;
+        }
+
+        .king-name {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .health-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            border-radius: 6px;
+            transition: width 0.5s;
+            box-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+
+        .upgrade-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .upgrade-btn {
+            padding: 12px 8px;
+            background: linear-gradient(145deg, rgba(233, 69, 96, 0.2), rgba(233, 69, 96, 0.1));
+            border: 1px solid rgba(233, 69, 96, 0.4);
+            color: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .upgrade-btn:active:not(:disabled) {
+            transform: scale(0.95);
+            background: rgba(233, 69, 96, 0.4);
+        }
+
+        .upgrade-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .upgrade-icon {
+            font-size: 20px;
+        }
+
+        .upgrade-cost {
+            color: #ffd700;
+            font-size: 11px;
+        }
+
+        /* Wave Info */
+        .wave-info-card {
+            background: linear-gradient(145deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .wave-info-title {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .wave-info-stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 14px;
+        }
+
+        .wave-stat {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .wave-stat-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #e94560;
+        }
+
+        .wave-stat-label {
+            font-size: 10px;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        /* Notifications */
+        #notification {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background: rgba(0,0,0,0.95);
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 5000;
+            border: 1px solid;
+            transition: transform 0.3s;
+            pointer-events: none;
+        }
+
+        #notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #notification.success { border-color: #2ecc71; color: #2ecc71; }
+        #notification.error { border-color: #e94560; color: #e94560; }
+        #notification.info { border-color: #3498db; color: #3498db; }
+
+        /* Tutorial */
+        #tutorial {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5,5,8,0.98);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+        }
+
+        #tutorial h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #e94560, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #tutorial h2 {
+            font-size: 18px;
+            color: #aaa;
+            margin-bottom: 30px;
+            font-weight: 400;
+        }
+
+        .tutorial-step {
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 350px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .tutorial-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .tutorial-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        .highlight {
+            color: #ffd700;
+            font-weight: 700;
+        }
+
+        #tutorial button {
+            margin-top: 20px;
+            padding: 18px 50px;
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            border: none;
+            color: #fff;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 6px 30px rgba(233, 69, 96, 0.4);
+        }
+
+        /* Game Over */
+        #gameOverScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5,5,8,0.98);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+            padding: 30px;
+        }
+
+        #gameOverScreen h1 {
+            font-size: 48px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 40px currentColor;
+        }
+
+        #gameOverScreen p {
+            font-size: 18px;
+            color: #aaa;
+            margin-bottom: 40px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        #gameOverScreen button {
+            padding: 18px 50px;
+            background: linear-gradient(135deg, #e94560, #c0392b);
+            border: none;
+            color: #fff;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: 800;
+            box-shadow: 0 6px 30px rgba(233, 69, 96, 0.4);
+        }
+
+        /* Path Indicator */
+        #pathIndicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            color: #aaa;
+            z-index: 40;
+            display: none;
+        }
+
+        #pathIndicator.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Tutorial -->
+    <div id="tutorial">
+        <h1>⚔️ LEGION TD</h1>
+        <h2>Verteidige deinen König</h2>
+        
+        <div class="tutorial-step">
+            <div class="tutorial-icon">🏗️</div>
+            <div class="tutorial-text">
+                Baue Türme <span class="highlight">links und rechts</span> des Pfads.<br>
+                Gegner müssen einen <span class="highlight">langen Weg</span> laufen!
+            </div>
+        </div>
+        
+        <div class="tutorial-step">
+            <div class="tutorial-icon">💎</div>
+            <div class="tutorial-text">
+                <span class="highlight">Gold</span> für Türme<br>
+                <span class="highlight">Mythium</span> für Söldner (sende sie zum Gegner!)
+            </div>
+        </div>
+        
+        <div class="tutorial-step">
+            <div class="tutorial-icon">👑</div>
+            <div class="tutorial-text">
+                Wenn Gegner durchbrechen, greifen sie deinen <span class="highlight">König</span> an.<br>
+                Beschütze ihn um jeden Preis!
+            </div>
+        </div>
+        
+        <button onclick="startGame()">Spiel starten</button>
+    </div>
+
+    <div id="gameContainer">
+        <!-- Header -->
+        <div id="header">
+            <div class="resource-group">
+                <div class="resource">
+                    <div class="resource-icon gold">🪙</div>
+                    <span id="goldDisplay">100</span>
+                </div>
+                <div class="resource">
+                    <div class="resource-icon mythium">💎</div>
+                    <span id="mythiumDisplay">0</span>
+                </div>
+            </div>
+            
+            <div id="waveDisplay">
+                <div id="waveNumber">Welle 1</div>
+                <div id="phaseText">AUFBAU</div>
+            </div>
+
+            <div class="resource-group" style="align-items: flex-end;">
+                <div class="resource">
+                    <span id="incomeDisplay">+10</span>
+                    <div class="resource-icon income">📈</div>
+                </div>
+                <div class="resource">
+                    <span id="workersDisplay">2</span>
+                    <div class="resource-icon workers">👷</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Area -->
+        <div id="gameArea">
+            <canvas id="gameCanvas"></canvas>
+            
+            <div id="pathIndicator">🛤️ Laufweg verlängern!</div>
+            
+            <button id="workerFab" onclick="game.trainWorker()">
+                👷
+                <span class="cost" id="workerCost">50</span>
+            </button>
+
+            <button id="readyFab" onclick="game.toggleReady()">
+                <span>⚔️</span> BEREIT
+            </button>
+
+            <button id="sendFab" onclick="game.sendMercenaries()">
+                🚀
+            </button>
+        </div>
+
+        <!-- Bottom Panel -->
+        <div id="bottomPanel">
+            <div id="tabs">
+                <button class="tab active" onclick="game.switchTab('build', this)">
+                    🏗️ Bauen
+                </button>
+                <button class="tab" onclick="game.switchTab('mercs', this)">
+                    💎 Söldner
+                </button>
+                <button class="tab" onclick="game.switchTab('king', this)">
+                    👑 König
+                </button>
+            </div>
+
+            <div id="panelContent">
+                <!-- Build Tab -->
+                <div id="buildTab" class="tab-content active">
+                    <div class="unit-grid" id="defenderGrid"></div>
+                </div>
+
+                <!-- Mercs Tab -->
+                <div id="mercsTab" class="tab-content">
+                    <div style="margin-bottom: 15px; padding: 10px; background: rgba(155, 89, 182, 0.1); border-radius: 12px; text-align: center; font-size: 13px; color: #bbb;">
+                        💡 Söldner erhöhen dein <span style="color: #2ecc71; font-weight: bold;">Einkommen</span> und greifen den Gegner an!
+                    </div>
+                    <div class="unit-grid" id="mercenaryGrid"></div>
+                </div>
+
+                <!-- King Tab -->
+                <div id="kingTab" class="tab-content">
+                    <div class="king-section">
+                        <div class="king-header">
+                            <div class="king-avatar">👑</div>
+                            <div class="king-stats">
+                                <div class="king-name">Dein König</div>
+                                <div class="health-bar">
+                                    <div class="health-fill" id="kingHealthBar" style="width: 100%;"></div>
+                                </div>
+                                <div style="font-size: 12px; color: #aaa; margin-top: 5px;">
+                                    <span id="kingHpText">1000/1000</span> HP
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="upgrade-grid">
+                            <button class="upgrade-btn" onclick="game.upgradeKing('attack')">
+                                <span class="upgrade-icon">⚔️</span>
+                                <span>Angriff</span>
+                                <span class="upgrade-cost">100🪙</span>
+                            </button>
+                            <button class="upgrade-btn" onclick="game.upgradeKing('regen')">
+                                <span class="upgrade-icon">💚</span>
+                                <span>Heilung</span>
+                                <span class="upgrade-cost">100🪙</span>
+                            </button>
+                            <button class="upgrade-btn" onclick="game.upgradeKing('spell')">
+                                <span class="upgrade-icon">🔥</span>
+                                <span>Zauber</span>
+                                <span class="upgrade-cost">150🪙</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="wave-info-card">
+                        <div class="wave-info-title">Nächste Welle</div>
+                        <div class="wave-info-stats" id="nextWaveInfo">
+                            <div class="wave-stat">
+                                <span class="wave-stat-value" id="nextWaveCount">5</span>
+                                <span class="wave-stat-label">Gegner</span>
+                            </div>
+                            <div class="wave-stat">
+                                <span class="wave-stat-value" id="nextWaveHp">30</span>
+                                <span class="wave-stat-label">Leben</span>
+                            </div>
+                            <div class="wave-stat">
+                                <span class="wave-stat-value" id="nextWaveReward">50</span>
+                                <span class="wave-stat-label">🪙</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification"></div>
+
+    <div id="gameOverScreen">
+        <h1 id="gameOverTitle">SIEG!</h1>
+        <p id="gameOverText"></p>
+        <button onclick="location.reload()">Neues Spiel</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game config
+        const TILE_SIZE = 32;
+        const PATH_WIDTH = 2; // tiles
+        
+        // Tower definitions
+        const TOWERS = {
+            archer: {
+                name: 'Bogenschütze',
+                icon: '🏹',
+                cost: 35,
+                damage: 12,
+                range: 90,
+                attackSpeed: 1.2,
+                color: '#27ae60',
+                desc: 'Schneller, günstiger Turm'
+            },
+            cannon: {
+                name: 'Kanone',
+                icon: '💣',
+                cost: 60,
+                damage: 35,
+                range: 70,
+                attackSpeed: 0.6,
+                splash: 1.5,
+                color: '#e67e22',
+                desc: 'Flächenschaden'
+            },
+            ice: {
+                name: 'Eismagier',
+                icon: '❄️',
+                cost: 80,
+                damage: 8,
+                range: 80,
+                attackSpeed: 1.0,
+                slow: 0.5,
+                color: '#3498db',
+                desc: 'Verlangsamt Gegner'
+            },
+            sniper: {
+                name: 'Scharfschütze',
+                icon: '🎯',
+                cost: 120,
+                damage: 80,
+                range: 150,
+                attackSpeed: 0.4,
+                color: '#9b59b6',
+                desc: 'Extreme Reichweite'
+            },
+            tesla: {
+                name: 'Tesla',
+                icon: '⚡',
+                cost: 150,
+                damage: 25,
+                range: 85,
+                attackSpeed: 2.0,
+                chain: 3,
+                color: '#f1c40f',
+                desc: 'Kettenblitze'
+            },
+            ultimate: {
+                name: 'Laser',
+                icon: '🔥',
+                cost: 250,
+                damage: 100,
+                range: 100,
+                attackSpeed: 1.5,
+                color: '#e94560',
+                desc: 'Ultimativer Schaden'
+            }
+        };
+
+        const MERCENARIES = {
+            goblin: {
+                name: 'Goblin',
+                icon: '👺',
+                cost: 20,
+                income: 3,
+                health: 40,
+                damage: 5,
+                speed: 1.5,
+                color: '#27ae60'
+            },
+            wolf: {
+                name: 'Wolf',
+                icon: '🐺',
+                cost: 50,
+                income: 7,
+                health: 80,
+                damage: 12,
+                speed: 2.0,
+                color: '#8e44ad'
+            },
+            ogre: {
+                name: 'Oger',
+                icon: '👹',
+                cost: 100,
+                income: 15,
+                health: 200,
+                damage: 20,
+                speed: 0.8,
+                color: '#c0392b'
+            },
+            dragon: {
+                name: 'Drache',
+                icon: '🐲',
+                cost: 250,
+                income: 40,
+                health: 500,
+                damage: 45,
+                speed: 1.0,
+                color: '#f39c12'
+            }
+        };
+
+        const WAVES = [
+            { count: 5, health: 25, speed: 1, reward: 50 },
+            { count: 8, health: 40, speed: 1.1, reward: 60 },
+            { count: 6, health: 70, speed: 0.9, reward: 75 },
+            { count: 10, health: 55, speed: 1.2, reward: 90 },
+            { count: 4, health: 180, speed: 0.7, reward: 120 },
+            { count: 12, health: 90, speed: 1.3, reward: 140 },
+            { count: 8, health: 140, speed: 1.1, reward: 160 },
+            { count: 15, health: 110, speed: 1.4, reward: 180 },
+            { count: 6, health: 350, speed: 0.8, reward: 220 },
+            { count: 20, health: 160, speed: 1.5, reward: 280 }
+        ];
+
+        class Game {
+            constructor() {
+                this.setupCanvas();
+                window.addEventListener('resize', () => this.setupCanvas());
+                
+                this.cols = 0;
+                this.rows = 0;
+                this.pathTiles = []; // Array of {col, row} for path
+                
+                this.gold = 120;
+                this.mythium = 0;
+                this.income = 12;
+                this.workers = 2;
+                this.workerCost = 50;
+                
+                this.wave = 1;
+                this.phase = 'build';
+                this.phaseTimer = 35;
+                this.ready = false;
+                
+                this.king = { hp: 1000, maxHp: 1000, damage: 25, regen: 3 };
+                this.enemyKing = { hp: 1000, maxHp: 1000 };
+                
+                this.towers = [];
+                this.enemies = [];
+                this.projectiles = [];
+                this.particles = [];
+                this.pendingMercs = [];
+                
+                this.selectedTower = null;
+                this.selectedMerc = null;
+                this.hoverTile = null;
+                
+                this.lastTime = 0;
+                this.mythiumTimer = 0;
+                
+                this.setupUI();
+                this.setupInput();
+                this.generatePath();
+            }
+
+            setupCanvas() {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                this.cols = Math.floor(canvas.width / TILE_SIZE);
+                this.rows = Math.floor(canvas.height / TILE_SIZE);
+                if (this.pathTiles.length === 0) this.generatePath();
+            }
+
+            generatePath() {
+                // Snake pattern: top to bottom, alternating left-right
+                this.pathTiles = [];
+                const pathCol = Math.floor(this.cols / 2);
+                
+                for (let row = 0; row < this.rows; row++) {
+                    // Main vertical path in middle
+                    this.pathTiles.push({ col: pathCol, row: row });
+                    this.pathTiles.push({ col: pathCol + 1, row: row });
+                }
+            }
+
+            isPath(col, row) {
+                return this.pathTiles.some(p => p.col === col && p.row === row);
+            }
+
+            canBuild(col, row) {
+                if (col < 0 || col >= this.cols || row < 0 || row >= this.rows) return false;
+                if (this.isPath(col, row)) return false;
+                return !this.towers.some(t => t.col === col && t.row === row);
+            }
+
+            setupUI() {
+                // Tower cards
+                const grid = document.getElementById('defenderGrid');
+                Object.entries(TOWERS).forEach(([key, tower]) => {
+                    const card = document.createElement('div');
+                    card.className = 'unit-card';
+                    card.innerHTML = `
+                        <div class="unit-glow" style="background: ${tower.color};"></div>
+                        <div class="unit-icon" style="background: linear-gradient(135deg, ${tower.color}, ${this.darken(tower.color)});">
+                            ${tower.icon}
+                        </div>
+                        <div class="unit-name">${tower.name}</div>
+                        <div class="unit-cost">${tower.cost}🪙</div>
+                        <div class="unit-dps">DMG: ${tower.damage}</div>
+                    `;
+                    card.onclick = () => this.selectTower(key, card);
+                    grid.appendChild(card);
+                });
+
+                // Merc cards
+                const mercGrid = document.getElementById('mercenaryGrid');
+                Object.entries(MERCENARIES).forEach(([key, merc]) => {
+                    const card = document.createElement('div');
+                    card.className = 'unit-card';
+                    card.innerHTML = `
+                        <div class="unit-glow" style="background: ${merc.color};"></div>
+                        <div class="unit-icon" style="background: linear-gradient(135deg, ${merc.color}, ${this.darken(merc.color)});">
+                            ${merc.icon}
+                        </div>
+                        <div class="unit-name">${merc.name}</div>
+                        <div class="unit-cost">${merc.cost}💎</div>
+                        <div class="unit-dps">+${merc.income}📈</div>
+                    `;
+                    card.onclick = () => this.selectMerc(key, card);
+                    mercGrid.appendChild(card);
+                });
+
+                this.updateUI();
+            }
+
+            darken(color) {
+                // Simple darken for gradient
+                return color;
+            }
+
+            setupInput() {
+                const handleInput = (x, y) => {
+                    const col = Math.floor(x / TILE_SIZE);
+                    const row = Math.floor(y / TILE_SIZE);
+                    
+                    if (this.phase === 'build' && this.selectedTower && this.canBuild(col, row)) {
+                        this.buildTower(col, row);
+                    }
+                };
+
+                canvas.addEventListener('click', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    handleInput(e.clientX - rect.left, e.clientY - rect.top);
+                });
+
+                canvas.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const rect = canvas.getBoundingClientRect();
+                    handleInput(touch.clientX - rect.left, touch.clientY - rect.top);
+                }, {passive: false});
+
+                canvas.addEventListener('mousemove', (e) => {
+                    const rect = canvas.getBoundingClientRect();
+                    this.hoverTile = {
+                        col: Math.floor((e.clientX - rect.left) / TILE_SIZE),
+                        row: Math.floor((e.clientY - rect.top) / TILE_SIZE)
+                    };
+                });
+            }
+
+            selectTower(type, card) {
+                if (this.phase !== 'build') return;
+                
+                document.querySelectorAll('#defenderGrid .unit-card').forEach(c => c.classList.remove('selected'));
+                
+                if (this.selectedTower === type) {
+                    this.selectedTower = null;
+                } else {
+                    this.selectedTower = type;
+                    card.classList.add('selected');
+                    this.showNotification('Tippe auf ein freies Feld zum Bauen', 'info');
+                }
+            }
+
+            selectMerc(type, card) {
+                document.querySelectorAll('#mercenaryGrid .unit-card').forEach(c => c.classList.remove('selected'));
+                
+                if (this.selectedMerc === type) {
+                    this.selectedMerc = null;
+                } else {
+                    this.selectedMerc = type;
+                    card.classList.add('selected');
+                    this.switchTab('build', document.querySelector('.tab'));
+                }
+            }
+
+            switchTab(tab, btn) {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                
+                if (btn) btn.classList.add('active');
+                document.getElementById(tab + 'Tab').classList.add('active');
+            }
+
+            buildTower(col, row) {
+                const tower = TOWERS[this.selectedTower];
+                if (this.gold < tower.cost) {
+                    this.showNotification('Nicht genug Gold!', 'error');
+                    return;
+                }
+
+                this.gold -= tower.cost;
+                this.towers.push({
+                    type: this.selectedTower,
+                    col, row,
+                    x: col * TILE_SIZE + TILE_SIZE/2,
+                    y: row * TILE_SIZE + TILE_SIZE/2,
+                    ...tower,
+                    lastAttack: 0,
+                    target: null,
+                    angle: 0
+                });
+
+                this.createParticles(col * TILE_SIZE + TILE_SIZE/2, row * TILE_SIZE + TILE_SIZE/2, tower.color, 15);
+                this.updateUI();
+            }
+
+            sendMercenaries() {
+                if (!this.selectedMerc || this.phase !== 'build') {
+                    this.showNotification('Wähle einen Söldner!', 'error');
+                    return;
+                }
+
+                const merc = MERCENARIES[this.selectedMerc];
+                if (this.mythium < merc.cost) {
+                    this.showNotification('Nicht genug Mythium!', 'error');
+                    return;
+                }
+
+                this.mythium -= merc.cost;
+                this.income += merc.income;
+                this.pendingMercs.push({...merc});
+                
+                this.showNotification(`${merc.name} gesendet! +${merc.income} Einkommen`, 'success');
+                this.updateUI();
+            }
+
+            trainWorker() {
+                if (this.gold < this.workerCost) {
+                    this.showNotification('Nicht genug Gold!', 'error');
+                    return;
+                }
+
+                this.gold -= this.workerCost;
+                this.workers++;
+                this.workerCost = Math.floor(this.workerCost * 1.3);
+                document.getElementById('workerCost').textContent = this.workerCost;
+                this.showNotification('Arbeiter eingestellt!', 'success');
+                this.updateUI();
+            }
+
+            upgradeKing(type) {
+                const costs = { attack: 100, regen: 100, spell: 150 };
+                if (this.gold < costs[type]) {
+                    this.showNotification('Nicht genug Gold!', 'error');
+                    return;
+                }
+
+                this.gold -= costs[type];
+                if (type === 'attack') this.king.damage += 10;
+                else if (type === 'regen') this.king.regen += 2;
+                else if (type === 'spell') this.king.damage += 15;
+                
+                this.showNotification('König verbessert!', 'success');
+                this.updateUI();
+            }
+
+            toggleReady() {
+                if (this.phase !== 'build') return;
+                this.ready = !this.ready;
+                
+                const btn = document.getElementById('readyFab');
+                if (this.ready) {
+                    btn.classList.add('ready');
+                    btn.innerHTML = '<span>✓</span> WARTE...';
+                    this.startBattle();
+                } else {
+                    btn.classList.remove('ready');
+                    btn.innerHTML = '<span>⚔️</span> BEREIT';
+                }
+            }
+
+            startBattle() {
+                this.phase = 'battle';
+                this.ready = false;
+                document.getElementById('readyFab').style.display = 'none';
+                document.getElementById('sendFab').style.display = 'none';
+                document.getElementById('phaseText').textContent = 'KAMPF!';
+                document.getElementById('waveDisplay').style.borderColor = '#2ecc71';
+                document.getElementById('waveDisplay').style.boxShadow = '0 0 30px rgba(46, 204, 113, 0.3)';
+
+                const wave = WAVES[Math.min(this.wave - 1, WAVES.length - 1)];
+                
+                // Spawn wave enemies
+                for (let i = 0; i < wave.count; i++) {
+                    setTimeout(() => this.spawnEnemy(wave), i * 800);
+                }
+
+                // Spawn our mercs
+                this.pendingMercs.forEach((merc, i) => {
+                    setTimeout(() => this.spawnMerc(merc), wave.count * 800 + i * 600);
+                });
+
+                // Enemy mercs
+                const enemySends = Math.floor(this.wave * 1.2);
+                for (let i = 0; i < enemySends; i++) {
+                    setTimeout(() => {
+                        const types = Object.keys(MERCENARIES);
+                        const type = types[Math.floor(Math.random() * types.length)];
+                        this.spawnMerc(MERCENARIES[type], true);
+                    }, i * 1000 + 2000);
+                }
+            }
+
+            spawnEnemy(stats) {
+                this.enemies.push({
+                    x: this.pathTiles[0].col * TILE_SIZE + TILE_SIZE/2,
+                    y: -20,
+                    pathIndex: 0,
+                    ...stats,
+                    hp: stats.health,
+                    maxHp: stats.health,
+                    isMerc: false,
+                    slowTimer: 0
+                });
+            }
+
+            spawnMerc(merc, isEnemy = false) {
+                this.enemies.push({
+                    x: this.pathTiles[0].col * TILE_SIZE + TILE_SIZE/2,
+                    y: -20,
+                    pathIndex: 0,
+                    ...merc,
+                    hp: merc.health,
+                    maxHp: merc.health,
+                    isMerc: true,
+                    isEnemyMerc: isEnemy,
+                    slowTimer: 0
+                });
+            }
+
+            update(dt) {
+                // Mythium generation
+                this.mythiumTimer += dt;
+                if (this.mythiumTimer >= 8) {
+                    this.mythium += this.workers * 2;
+                    this.mythiumTimer = 0;
+                }
+
+                // Phase timer
+                if (this.phase === 'build') {
+                    this.phaseTimer -= dt;
+                    if (this.phaseTimer <= 0) this.startBattle();
+                }
+
+                // Update towers
+                this.towers.forEach(tower => {
+                    // Find target
+                    if (!tower.target || tower.target.hp <= 0 || !this.enemies.includes(tower.target)) {
+                        tower.target = this.findTarget(tower);
+                    }
+
+                    if (tower.target) {
+                        const dx = tower.target.x - tower.x;
+                        const dy = tower.target.y - tower.y;
+                        tower.angle = Math.atan2(dy, dx);
+
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        if (dist <= tower.range && Date.now() - tower.lastAttack > 1000/tower.attackSpeed) {
+                            this.shoot(tower, tower.target);
+                            tower.lastAttack = Date.now();
+                        }
+                    }
+                });
+
+                // Update enemies
+                for (let i = this.enemies.length - 1; i >= 0; i--) {
+                    const enemy = this.enemies[i];
+                    
+                    // Move along path
+                    if (enemy.pathIndex < this.pathTiles.length - 1) {
+                        const target = this.pathTiles[enemy.pathIndex + 1];
+                        const tx = target.col * TILE_SIZE + TILE_SIZE/2;
+                        const ty = target.row * TILE_SIZE + TILE_SIZE/2;
+                        
+                        const dx = tx - enemy.x;
+                        const dy = ty - enemy.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        
+                        const speed = enemy.slowTimer > 0 ? enemy.speed * 0.5 : enemy.speed;
+                        if (enemy.slowTimer > 0) enemy.slowTimer -= dt;
+
+                        if (dist > 2) {
+                            enemy.x += (dx/dist) * speed * 1.5;
+                            enemy.y += (dy/dist) * speed * 1.5;
+                        } else {
+                            enemy.pathIndex++;
+                        }
+                    } else {
+                        // Reached end - attack king
+                        if (enemy.isEnemyMerc) {
+                            this.king.hp -= enemy.damage * 2;
+                        } else {
+                            this.king.hp -= enemy.damage;
+                        }
+                        this.createParticles(enemy.x, enemy.y, '#e94560', 20);
+                        this.enemies.splice(i, 1);
+                        
+                        if (this.king.hp <= 0) this.gameOver(false);
+                    }
+
+                    // King attacks nearby
+                    const kingY = (this.rows - 2) * TILE_SIZE;
+                    const kingX = this.pathTiles[this.pathTiles.length-1].col * TILE_SIZE + TILE_SIZE/2;
+                    const distToKing = Math.sqrt(Math.pow(enemy.x - kingX, 2) + Math.pow(enemy.y - kingY, 2));
+                    
+                    if (distToKing < 60) {
+                        enemy.hp -= this.king.damage * dt;
+                        if (enemy.hp <= 0) {
+                            this.enemies.splice(i, 1);
+                            this.gold += enemy.isMerc ? 5 : 8;
+                        }
+                    }
+                }
+
+                // Update projectiles
+                for (let i = this.projectiles.length - 1; i >= 0; i--) {
+                    const p = this.projectiles[i];
+                    if (!this.enemies.includes(p.target)) {
+                        this.projectiles.splice(i, 1);
+                        continue;
+                    }
+
+                    const dx = p.target.x - p.x;
+                    const dy = p.target.y - p.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+
+                    if (dist < 8) {
+                        // Hit
+                        p.target.hp -= p.damage;
+                        
+                        if (p.slow) p.target.slowTimer = 2;
+                        
+                        if (p.target.hp <= 0) {
+                            const idx = this.enemies.indexOf(p.target);
+                            if (idx > -1) {
+                                this.enemies.splice(idx, 1);
+                                this.gold += p.target.isMerc ? 5 : 8;
+                            }
+                        }
+                        this.projectiles.splice(i, 1);
+                    } else {
+                        p.x += (dx/dist) * 8;
+                        p.y += (dy/dist) * 8;
+                    }
+                }
+
+                // Particles
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= dt;
+                    p.vy += 0.2;
+                    if (p.life <= 0) this.particles.splice(i, 1);
+                }
+
+                // Wave end
+                if (this.phase === 'battle' && this.enemies.length === 0) {
+                    this.endWave();
+                }
+
+                // King regen
+                if (this.phase === 'build') {
+                    this.king.hp = Math.min(this.king.maxHp, this.king.hp + this.king.regen * dt);
+                }
+
+                // Enemy king damage from our mercs
+                if (this.pendingMercs.length > 0 && this.phase === 'battle') {
+                    const dmg = this.pendingMercs.reduce((sum, m) => sum + m.damage * 0.1, 0) * dt;
+                    this.enemyKing.hp -= dmg;
+                    if (this.enemyKing.hp <= 0) this.gameOver(true);
+                }
+
+                this.updateUI();
+            }
+
+            findTarget(tower) {
+                let best = null;
+                let bestDist = tower.range;
+                
+                for (const enemy of this.enemies) {
+                    const dist = Math.sqrt(Math.pow(enemy.x - tower.x, 2) + Math.pow(enemy.y - tower.y, 2));
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        best = enemy;
+                    }
+                }
+                return best;
+            }
+
+            shoot(tower, target) {
+                this.projectiles.push({
+                    x: tower.x,
+                    y: tower.y,
+                    target: target,
+                    damage: tower.damage,
+                    color: tower.color,
+                    slow: tower.slow
+                });
+            }
+
+            endWave() {
+                this.phase = 'build';
+                this.phaseTimer = 35;
+                this.wave++;
+                this.gold += this.income;
+                this.pendingMercs = [];
+                
+                document.getElementById('readyFab').style.display = 'flex';
+                document.getElementById('sendFab').style.display = 'flex';
+                document.getElementById('sendFab').classList.add('active');
+                document.getElementById('phaseText').textContent = 'AUFBAU';
+                document.getElementById('waveDisplay').style.borderColor = 'rgba(233, 69, 96, 0.5)';
+                document.getElementById('waveDisplay').style.boxShadow = '0 0 20px rgba(233, 69, 96, 0.2)';
+                document.getElementById('readyFab').classList.remove('ready');
+                document.getElementById('readyFab').innerHTML = '<span>⚔️</span> BEREIT';
+                
+                this.showNotification(`Welle ${this.wave-1} geschafft! +${this.income} Gold`, 'success');
+            }
+
+            createParticles(x, y, color, count) {
+                for (let i = 0; i < count; i++) {
+                    const angle = (Math.PI * 2 * i) / count;
+                    this.particles.push({
+                        x, y,
+                        vx: Math.cos(angle) * (Math.random() * 3 + 1),
+                        vy: Math.sin(angle) * (Math.random() * 3 + 1),
+                        life: 0.8,
+                        color
+                    });
+                }
+            }
+
+            draw() {
+                // Clear with gradient
+                const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width);
+                grad.addColorStop(0, '#0f0f1a');
+                grad.addColorStop(1, '#050508');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw grid
+                ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+                ctx.lineWidth = 1;
+                for (let x = 0; x <= this.cols; x++) {
+                    ctx.beginPath();
+                    ctx.moveTo(x * TILE_SIZE, 0);
+                    ctx.lineTo(x * TILE_SIZE, canvas.height);
+                    ctx.stroke();
+                }
+                for (let y = 0; y <= this.rows; y++) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y * TILE_SIZE);
+                    ctx.lineTo(canvas.width, y * TILE_SIZE);
+                    ctx.stroke();
+                }
+
+                // Draw path with glow
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = 'rgba(233, 69, 96, 0.5)';
+                ctx.fillStyle = 'rgba(233, 69, 96, 0.15)';
+                
+                this.pathTiles.forEach(tile => {
+                    ctx.fillRect(tile.col * TILE_SIZE, tile.row * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                });
+                
+                ctx.shadowBlur = 0;
+
+                // Path borders
+                ctx.strokeStyle = 'rgba(233, 69, 96, 0.4)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([8, 4]);
+                const pathCol = Math.floor(this.cols / 2);
+                ctx.beginPath();
+                ctx.moveTo(pathCol * TILE_SIZE, 0);
+                ctx.lineTo(pathCol * TILE_SIZE, canvas.height);
+                ctx.moveTo((pathCol + 2) * TILE_SIZE, 0);
+                ctx.lineTo((pathCol + 2) * TILE_SIZE, canvas.height);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Build preview
+                if (this.phase === 'build' && this.selectedTower && this.hoverTile) {
+                    const x = this.hoverTile.col * TILE_SIZE;
+                    const y = this.hoverTile.row * TILE_SIZE;
+                    const canBuild = this.canBuild(this.hoverTile.col, this.hoverTile.row);
+                    
+                    ctx.fillStyle = canBuild ? 'rgba(46, 204, 113, 0.3)' : 'rgba(231, 76, 60, 0.3)';
+                    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+                    
+                    if (canBuild) {
+                        const tower = TOWERS[this.selectedTower];
+                        ctx.beginPath();
+                        ctx.arc(x + TILE_SIZE/2, y + TILE_SIZE/2, tower.range, 0, Math.PI*2);
+                        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                        ctx.fill();
+                        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+
+                // Towers
+                this.towers.forEach(t => {
+                    // Range indicator on hover
+                    if (this.hoverTile && this.hoverTile.col === t.col && this.hoverTile.row === t.row) {
+                        ctx.beginPath();
+                        ctx.arc(t.x, t.y, t.range, 0, Math.PI*2);
+                        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                        ctx.fill();
+                    }
+
+                    // Tower base
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillRect(t.col * TILE_SIZE + 2, t.row * TILE_SIZE + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                    
+                    // Tower glow
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = t.color;
+                    ctx.fillStyle = t.color;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, 10, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    // Icon
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(t.icon, t.x, t.y);
+
+                    // Direction
+                    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(t.x, t.y);
+                    ctx.lineTo(t.x + Math.cos(t.angle) * 12, t.y + Math.sin(t.angle) * 12);
+                    ctx.stroke();
+                });
+
+                // Enemies
+                this.enemies.forEach(e => {
+                    const hpPct = e.hp / e.maxHp;
+                    
+                    // Health bar
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(e.x - 10, e.y - 18, 20, 4);
+                    ctx.fillStyle = hpPct > 0.5 ? '#2ecc71' : '#e74c3c';
+                    ctx.fillRect(e.x - 10, e.y - 18, 20 * hpPct, 4);
+
+                    // Enemy body
+                    ctx.shadowBlur = e.isMerc ? 15 : 10;
+                    ctx.shadowColor = e.isMerc ? '#f39c12' : '#e74c3c';
+                    ctx.fillStyle = e.isMerc ? '#f39c12' : '#c0392b';
+                    ctx.beginPath();
+                    ctx.arc(e.x, e.y, e.isMerc ? 9 : 7, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    // Icon
+                    ctx.fillStyle = '#fff';
+                    ctx.font = e.isMerc ? '12px Arial' : '10px Arial';
+                    ctx.fillText(e.icon || '👹', e.x, e.y);
+                });
+
+                // Projectiles
+                this.projectiles.forEach(p => {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = p.color;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                });
+
+                // Particles
+                this.particles.forEach(p => {
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                });
+
+                // Kings
+                this.drawKing(this.pathTiles[this.pathTiles.length-1].col * TILE_SIZE + TILE_SIZE, 
+                             (this.rows - 1.5) * TILE_SIZE, this.king, false);
+                this.drawKing(this.pathTiles[0].col * TILE_SIZE + TILE_SIZE, 
+                             0.5 * TILE_SIZE, this.enemyKing, true);
+            }
+
+            drawKing(x, y, king, isEnemy) {
+                const size = 22;
+                
+                // Glow
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = isEnemy ? '#c0392b' : '#2980b9';
+                
+                // Body
+                ctx.fillStyle = isEnemy ? '#c0392b' : '#2980b9';
+                ctx.beginPath();
+                ctx.arc(x, y, size, 0, Math.PI*2);
+                ctx.fill();
+                
+                ctx.shadowBlur = 0;
+
+                // Health ring
+                const hpPct = king.hp / king.maxHp;
+                ctx.strokeStyle = hpPct > 0.5 ? '#2ecc71' : '#e74c3c';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(x, y, size + 4, -Math.PI/2, -Math.PI/2 + Math.PI*2*hpPct);
+                ctx.stroke();
+
+                // Crown
+                ctx.fillStyle = '#f1c40f';
+                ctx.beginPath();
+                ctx.moveTo(x-10, y-6);
+                ctx.lineTo(x-7, y-16);
+                ctx.lineTo(x-3, y-6);
+                ctx.lineTo(x, y-12);
+                ctx.lineTo(x+3, y-6);
+                ctx.lineTo(x+7, y-16);
+                ctx.lineTo(x+10, y-6);
+                ctx.closePath();
+                ctx.fill();
+
+                // Label
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 10px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(Math.floor(king.hp), x, y + size + 14);
+            }
+
+            updateUI() {
+                document.getElementById('goldDisplay').textContent = Math.floor(this.gold);
+                document.getElementById('mythiumDisplay').textContent = Math.floor(this.mythium);
+                document.getElementById('incomeDisplay').textContent = '+' + this.income;
+                document.getElementById('workersDisplay').textContent = this.workers;
+                document.getElementById('waveNumber').textContent = 'Welle ' + this.wave;
+                
+                const hpPct = (this.king.hp / this.king.maxHp) * 100;
+                document.getElementById('kingHealthBar').style.width = hpPct + '%';
+                document.getElementById('kingHpText').textContent = Math.floor(this.king.hp) + '/' + this.king.maxHp;
+
+                const next = WAVES[Math.min(this.wave - 1, WAVES.length - 1)];
+                document.getElementById('nextWaveCount').textContent = next.count;
+                document.getElementById('nextWaveHp').textContent = next.health;
+                document.getElementById('nextWaveReward').textContent = next.reward;
+
+                // Update card states
+                document.querySelectorAll('#defenderGrid .unit-card').forEach(card => {
+                    const cost = parseInt(card.querySelector('.unit-cost').textContent);
+                    card.classList.toggle('disabled', this.gold < cost || this.phase !== 'build');
+                });
+
+                document.querySelectorAll('#mercenaryGrid .unit-card').forEach(card => {
+                    const cost = parseInt(card.querySelector('.unit-cost').textContent);
+                    card.classList.toggle('disabled', this.mythium < cost || this.phase !== 'build');
+                });
+            }
+
+            showNotification(text, type) {
+                const notif = document.getElementById('notification');
+                notif.textContent = text;
+                notif.className = 'show ' + type;
+                setTimeout(() => notif.classList.remove('show'), 2500);
+            }
+
+            gameOver(victory) {
+                const screen = document.getElementById('gameOverScreen');
+                const title = document.getElementById('gameOverTitle');
+                const text = document.getElementById('gameOverText');
+                
+                screen.style.display = 'flex';
+                title.textContent = victory ? 'SIEG!' : 'NIEDERLAGE';
+                title.style.color = victory ? '#2ecc71' : '#e94560';
+                text.textContent = victory ? 
+                    `Du hast den Feind in Welle ${this.wave} besiegt!` : 
+                    'Dein König ist gefallen. Versuche es erneut!';
+            }
+
+            loop(timestamp) {
+                const dt = (timestamp - this.lastTime) / 1000;
+                this.lastTime = timestamp;
+                
+                if (dt < 0.1) {
+                    this.update(dt);
+                    this.draw();
+                }
+                requestAnimationFrame(t => this.loop(t));
+            }
+        }
+
+        let game;
+        function startGame() {
+            document.getElementById('tutorial').style.display = 'none';
+            game = new Game();
+            game.loop(0);
+        }
+    </script>
+</body>
+</html>
