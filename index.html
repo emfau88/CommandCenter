@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Legion TD Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e17;
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Top Bar - Resources */
+        .top-bar {
+            background: linear-gradient(180deg, #1a2332 0%, #0f1419 100%);
+            border-bottom: 2px solid #2a3f5f;
+            padding: 8px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            z-index: 100;
+        }
+        
+        .resource-box {
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            padding: 6px;
+            text-align: center;
+            border: 1px solid;
+            position: relative;
+        }
+        
+        .resource-gold { border-color: #ffd700; box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+        .resource-mythium { border-color: #00ffff; box-shadow: 0 0 10px rgba(0,255,255,0.2); }
+        .resource-income { border-color: #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.2); }
+        
+        .resource-icon {
+            font-size: 16px;
+            margin-bottom: 2px;
+        }
+        
+        .resource-value {
+            font-size: 18px;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .resource-label {
+            font-size: 10px;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+        
+        .resource-rate {
+            font-size: 9px;
+            opacity: 0.6;
+            margin-top: 2px;
+        }
+        
+        /* Wave Info */
+        .wave-info {
+            background: linear-gradient(90deg, #2d1b4e 0%, #1a0f2e 100%);
+            padding: 8px;
+            text-align: center;
+            border-bottom: 2px solid #4a148c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .wave-number {
+            font-size: 14px;
+            font-weight: bold;
+            color: #e1bee7;
+        }
+        
+        .phase-indicator {
+            background: rgba(0,0,0,0.5);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .phase-build { color: #4caf50; border: 1px solid #4caf50; }
+        .phase-send { color: #ff9800; border: 1px solid #ff9800; }
+        .phase-combat { color: #f44336; border: 1px solid #f44336; }
+        
+        .timer {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            min-width: 30px;
+        }
+        
+        /* King Health Bar */
+        .king-bar {
+            background: #1a1a2e;
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #333;
+        }
+        
+        .king-label {
+            font-size: 11px;
+            color: #888;
+            min-width: 40px;
+        }
+        
+        .health-bar-container {
+            flex: 1;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .health-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444 0%, #ff8844 100%);
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .enemy-king .health-bar {
+            background: linear-gradient(90deg, #4444ff 0%, #8844ff 100%);
+        }
+        
+        /* Game Area */
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .lanes-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 4px;
+            overflow-y: auto;
+        }
+        
+        .lane {
+            flex: 1;
+            min-height: 120px;
+            background: linear-gradient(180deg, #1e2a3a 0%, #0f1419 100%);
+            border: 2px solid #2a3f5f;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .lane-header {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            font-size: 10px;
+            color: #666;
+            z-index: 10;
+        }
+        
+        .lane-player {
+            border-color: #4caf50;
+            background: linear-gradient(180deg, #1a2f1a 0%, #0f190f 100%);
+        }
+        
+        .lane-enemy {
+            border-color: #f44336;
+            background: linear-gradient(180deg, #2f1a1a 0%, #190f0f 100%);
+        }
+        
+        .build-area {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 70%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 4px;
+            padding: 4px;
+        }
+        
+        .build-slot {
+            background: rgba(255,255,255,0.05);
+            border: 1px dashed rgba(255,255,255,0.2);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            position: relative;
+            transition: all 0.2s;
+        }
+        
+        .build-slot:active {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .build-slot.occupied {
+            background: rgba(76,175,80,0.2);
+            border: 2px solid #4caf50;
+            box-shadow: 0 0 10px rgba(76,175,80,0.3);
+        }
+        
+        .build-slot.selected {
+            border-color: #ffd700;
+            background: rgba(255,215,0,0.2);
+            box-shadow: 0 0 15px rgba(255,215,0,0.4);
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .unit {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            position: relative;
+        }
+        
+        .unit-hp {
+            position: absolute;
+            bottom: 4px;
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .unit-hp-bar {
+            height: 100%;
+            background: #4caf50;
+            transition: width 0.2s;
+        }
+        
+        .combat-zone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 30%;
+            background: rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .creep {
+            position: absolute;
+            font-size: 24px;
+            transition: all 0.1s linear;
+            z-index: 5;
+            filter: drop-shadow(0 0 3px rgba(0,0,0,0.8));
+        }
+        
+        .projectile {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #ffeb3b;
+            border-radius: 50%;
+            z-index: 6;
+            pointer-events: none;
+            box-shadow: 0 0 6px #ffeb3b;
+        }
+        
+        /* Bottom Controls */
+        .controls {
+            background: linear-gradient(0deg, #0a0e17 0%, #1a2332 100%);
+            border-top: 2px solid #2a3f5f;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 45vh;
+        }
+        
+        .wave-preview {
+            background: rgba(0,0,0,0.5);
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            border: 1px solid #4a148c;
+        }
+        
+        .wave-enemies {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            font-size: 20px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        
+        .tab {
+            flex: 1;
+            min-width: 80px;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: #4caf50;
+            box-shadow: 0 0 10px rgba(76,175,80,0.4);
+        }
+        
+        .panel {
+            display: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .panel.active {
+            display: block;
+        }
+        
+        .units-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .unit-card {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f1f3a 100%);
+            border: 2px solid #3a5f8f;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .unit-card:active {
+            transform: scale(0.95);
+        }
+        
+        .unit-card.selected {
+            border-color: #ffd700;
+            box-shadow: 0 0 15px rgba(255,215,0,0.3);
+            background: linear-gradient(135deg, #3a3a1f 0%, #1f1f0f 100%);
+        }
+        
+        .unit-card.disabled {
+            opacity: 0.4;
+            border-color: #555;
+        }
+        
+        .unit-icon {
+            font-size: 32px;
+            margin-bottom: 4px;
+        }
+        
+        .unit-name {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .unit-cost {
+            font-size: 10px;
+            color: #ffd700;
+        }
+        
+        .unit-stats {
+            font-size: 9px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+        
+        .send-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .send-card {
+            background: linear-gradient(135deg, #3f1e5f 0%, #1f0f3a 100%);
+            border: 2px solid #5f3a8f;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .send-card:active {
+            transform: scale(0.98);
+        }
+        
+        .send-card.disabled {
+            opacity: 0.4;
+        }
+        
+        .send-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .send-name {
+            font-size: 12px;
+            font-weight: bold;
+            color: #e1bee7;
+        }
+        
+        .send-cost {
+            font-size: 11px;
+            color: #00ffff;
+            background: rgba(0,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .send-desc {
+            font-size: 10px;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+        
+        .send-income {
+            font-size: 9px;
+            color: #4caf50;
+        }
+        
+        /* Action Button */
+        .action-bar {
+            display: flex;
+            gap: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #333;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-transform: uppercase;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%);
+            color: white;
+            box-shadow: 0 4px 0 #1b5e20;
+        }
+        
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #1b5e20;
+        }
+        
+        .btn-primary:disabled {
+            background: #555;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+            color: white;
+            box-shadow: 0 4px 0 #e65100;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            border: 2px solid;
+            border-radius: 12px;
+            padding: 16px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+            animation: fadeInOut 2s ease;
+            text-align: center;
+            max-width: 80%;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
+        
+        .toast.success { border-color: #4caf50; color: #4caf50; }
+        .toast.error { border-color: #f44336; color: #f44336; }
+        .toast.info { border-color: #2196f3; color: #2196f3; }
+        
+        /* Logs */
+        .log-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            border: 2px solid #4caf50;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .log-panel.show {
+            display: block;
+        }
+        
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #333;
+            font-size: 12px;
+        }
+        
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            z-index: 999;
+        }
+        
+        .overlay.show {
+            display: block;
+        }
+        
+        /* Selection Indicator */
+        .selection-info {
+            background: rgba(255,215,0,0.2);
+            border: 1px solid #ffd700;
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        /* Responsive */
+        @media (max-height: 700px) {
+            .build-area {
+                height: 65%;
+            }
+            .combat-zone {
+                height: 35%;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #0a0e17;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #2a3f5f;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
+    <!-- Top Resource Bar -->
+    <div class="top-bar">
+        <div class="resource-box resource-gold">
+            <div class="resource-icon">🪙</div>
+            <span class="resource-value" id="gold">100</span>
+            <span class="resource-label">Gold</span>
+            <div class="resource-rate" id="goldRate">+20/Runde</div>
+        </div>
+        <div class="resource-box resource-mythium">
+            <div class="resource-icon">💎</div>
+            <span class="resource-value" id="mythium">0</span>
+            <span class="resource-label">Mythium</span>
+            <div class="resource-rate" id="mythRate">+2/10s</div>
+        </div>
+        <div class="resource-box resource-income">
+            <div class="resource-icon">📈</div>
+            <span class="resource-value" id="income">20</span>
+            <span class="resource-label">Income</span>
+            <div class="resource-rate">Gold/Runde</div>
+        </div>
+    </div>
+    
+    <!-- Wave Info -->
+    <div class="wave-info">
+        <div class="wave-number">Welle <span id="waveNum">1</span>/21</div>
+        <div class="phase-indicator phase-build" id="phaseIndicator">Build Phase</div>
+        <div class="timer" id="timer">30</div>
+    </div>
+    
+    <!-- King Health -->
+    <div class="king-bar">
+        <span class="king-label">👑 Du</span>
+        <div class="health-bar-container">
+            <div class="health-bar" id="playerKingHp" style="width: 100%">1000/1000</div>
+        </div>
+    </div>
+    <div class="king-bar">
+        <span class="king-label">👑 Gegner</span>
+        <div class="health-bar-container enemy-king">
+            <div class="health-bar" id="enemyKingHp" style="width: 100%">1000/1000</div>
+        </div>
+    </div>
+    
+    <!-- Game Area -->
+    <div class="game-container">
+        <div class="lanes-container">
+            <!-- Player Lane -->
+            <div class="lane lane-player" id="playerLane">
+                <div class="lane-header">DEINE LANE</div>
+                <div class="combat-zone" id="playerCombat"></div>
+                <div class="build-area" id="playerBuildArea"></div>
+            </div>
+            
+            <!-- Enemy Lane -->
+            <div class="lane lane-enemy" id="enemyLane">
+                <div class="lane-header">GEGNER LANE</div>
+                <div class="combat-zone" id="enemyCombat"></div>
+                <div class="build-area" id="enemyBuildArea"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Controls -->
+    <div class="controls">
+        <div class="wave-preview" id="wavePreview">
+            <strong>Nächste Welle:</strong> <span id="waveDesc">Grunts (5x 🐺)</span>
+            <div class="wave-enemies" id="waveEnemies">🐺🐺🐺🐺🐺</div>
+        </div>
+        
+        <div class="selection-info" id="selectionInfo" style="display: none;">
+            <span id="selectionText">Wähle Slot in deiner Lane</span>
+            <button class="btn" style="padding: 4px 8px; font-size: 10px;" onclick="cancelSelection()">✕</button>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('build')" id="tabBuild">🏗️ Bauen</button>
+            <button class="tab" onclick="switchTab('send')" id="tabSend">📤 Senden</button>
+            <button class="tab" onclick="switchTab('workers')" id="tabWorkers">👷 Worker</button>
+        </div>
+        
+        <!-- Build Panel -->
+        <div class="panel active" id="panelBuild">
+            <div class="units-grid" id="unitsGrid"></div>
+        </div>
+        
+        <!-- Send Panel -->
+        <div class="panel" id="panelSend">
+            <div class="send-grid" id="sendGrid"></div>
+        </div>
+        
+        <!-- Workers Panel -->
+        <div class="panel" id="panelWorkers">
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 48px; margin-bottom: 10px;">👷</div>
+                <div style="font-size: 14px; margin-bottom: 10px;">Worker: <span id="workerCount">0</span></div>
+                <div style="font-size: 12px; color: #aaa; margin-bottom: 15px;">
+                    Kostet: <span style="color: #ffd700;">50 Gold</span><br>
+                    +2 Mythium/10s pro Worker
+                </div>
+                <button class="btn btn-primary" onclick="buyWorker()" id="btnBuyWorker">
+                    Worker Kaufen
+                </button>
+            </div>
+        </div>
+        
+        <div class="action-bar">
+            <button class="btn btn-primary" id="btnReady" onclick="toggleReady()">
+                BEREIT (30)
+            </button>
+            <button class="btn btn-secondary" onclick="showLogs()">
+                📋 Log
+            </button>
+        </div>
+    </div>
+    
+    <!-- Logs -->
+    <div class="overlay" id="overlay" onclick="hideLogs()"></div>
+    <div class="log-panel" id="logPanel">
+        <h3 style="margin-bottom: 10px; color: #4caf50;">Spiel Log</h3>
+        <div id="logContent"></div>
+        <button class="btn btn-primary" style="margin-top: 10px; width: 100%;" onclick="hideLogs()">Schließen</button>
+    </div>
+
+    <script>
+        // Game State
+        const game = {
+            wave: 1,
+            phase: 'build',
+            phaseTime: 30,
+            gold: 100,
+            mythium: 0,
+            income: 20,
+            workers: 0,
+            playerKingHp: 1000,
+            enemyKingHp: 1000,
+            maxKingHp: 1000,
+            selectedUnit: null,
+            selectedSlot: null,
+            ready: false,
+            playerUnits: [],
+            enemyUnits: [],
+            playerSends: [],
+            enemySends: [],
+            creeps: [],
+            projectiles: [],
+            combatActive: false,
+            logs: [],
+            timerInterval: null
+        };
+        
+        // Unit Definitions
+        const units = {
+            archer: { name: 'Bogenschütze', icon: '🏹', cost: 20, dmg: 15, hp: 60, range: 3, speed: 1000, type: 'ranged' },
+            warrior: { name: 'Krieger', icon: '⚔️', cost: 30, dmg: 25, hp: 120, range: 1, speed: 800, type: 'melee' },
+            mage: { name: 'Magier', icon: '🔮', cost: 50, dmg: 40, hp: 40, range: 4, speed: 1200, type: 'ranged' },
+            tank: { name: 'Tank', icon: '🛡️', cost: 40, dmg: 10, hp: 200, range: 1, speed: 1500, type: 'melee' },
+            healer: { name: 'Heiler', icon: '✨', cost: 60, dmg: 0, hp: 50, range: 3, speed: 2000, type: 'support', heal: 20 }
+        };
+        
+        // Send Definitions
+        const sends = {
+            grunt: { name: 'Grunt', icon: '👹', cost: 10, income: 2, hp: 50, dmg: 8, desc: 'Basic melee creep' },
+            runner: { name: 'Runner', icon: '⚡', cost: 20, income: 4, hp: 30, dmg: 5, desc: 'Fast but weak' },
+            tanky: { name: 'Tank', icon: '🐢', cost: 30, income: 6, hp: 150, dmg: 12, desc: 'Slow but tanky' },
+            boss: { name: 'Boss', icon: '👺', cost: 80, income: 15, hp: 400, dmg: 25, desc: 'Powerful boss unit' }
+        };
+        
+        // Wave Definitions
+        const waves = [
+            { num: 1, enemies: [{type: 'grunt', count: 5}], desc: 'Grunts (5x)' },
+            { num: 2, enemies: [{type: 'grunt', count: 8}], desc: 'Grunts (8x)' },
+            { num: 3, enemies: [{type: 'runner', count: 6}], desc: 'Runners (6x)' },
+            { num: 4, enemies: [{type: 'grunt', count: 5}, {type: 'runner', count: 4}], desc: 'Mixed (9x)' },
+            { num: 5, enemies: [{type: 'tanky', count: 3}], desc: 'Tanks (3x)' },
+            { num: 6, enemies: [{type: 'grunt', count: 10}], desc: 'Grunt Wave (10x)' },
+            { num: 7, enemies: [{type: 'runner', count: 12}], desc: 'Runner Rush (12x)' },
+            { num: 8, enemies: [{type: 'tanky', count: 5}, {type: 'grunt', count: 5}], desc: 'Heavy Mix' },
+            { num: 9, enemies: [{type: 'boss', count: 1}, {type: 'grunt', count: 5}], desc: 'First Boss' },
+            { num: 10, enemies: [{type: 'runner', count: 20}], desc: 'Swarm (20x)' }
+        ];
+        
+        // Initialize
+        function init() {
+            createBuildSlots();
+            renderUnits();
+            renderSends();
+            updateUI();
+            startGameLoop();
+            showToast('Baue Türme und klicke BEREIT!', 'info');
+            log('Spiel gestartet! Baue Verteidigung und klicke BEREIT.');
+        }
+        
+        function createBuildSlots() {
+            const playerArea = document.getElementById('playerBuildArea');
+            const enemyArea = document.getElementById('enemyBuildArea');
+            
+            for (let i = 0; i < 8; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'build-slot';
+                slot.dataset.index = i;
+                slot.onclick = () => selectSlot(i);
+                playerArea.appendChild(slot);
+                game.playerUnits.push(null);
+            }
+            
+            for (let i = 0; i < 8; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'build-slot';
+                slot.style.opacity = '0.5';
+                enemyArea.appendChild(slot);
+                game.enemyUnits.push(null);
+            }
+        }
+        
+        function renderUnits() {
+            const grid = document.getElementById('unitsGrid');
+            grid.innerHTML = '';
+            
+            for (const [key, unit] of Object.entries(units)) {
+                const card = document.createElement('div');
+                card.className = 'unit-card';
+                card.dataset.unit = key;
+                card.onclick = () => selectUnit(key);
+                
+                card.innerHTML = `
+                    <div class="unit-icon">${unit.icon}</div>
+                    <div class="unit-name">${unit.name}</div>
+                    <div class="unit-cost">🪙 ${unit.cost}</div>
+                    <div class="unit-stats">⚔️${unit.dmg} ❤️${unit.hp} 📡${unit.range}</div>
+                `;
+                
+                grid.appendChild(card);
+            }
+        }
+        
+        function renderSends() {
+            const grid = document.getElementById('sendGrid');
+            grid.innerHTML = '';
+            
+            for (const [key, send] of Object.entries(sends)) {
+                const card = document.createElement('div');
+                card.className = 'send-card';
+                card.dataset.send = key;
+                card.onclick = () => sendMercenary(key);
+                
+                card.innerHTML = `
+                    <div class="send-header">
+                        <span class="send-name">${send.icon} ${send.name}</span>
+                        <span class="send-cost">${send.cost} 💎</span>
+                    </div>
+                    <div class="send-desc">${send.desc}</div>
+                    <div class="send-income">+${send.income} Income</div>
+                `;
+                
+                grid.appendChild(card);
+            }
+        }
+        
+        function selectUnit(unitKey) {
+            if (game.phase !== 'build') {
+                showToast('Nur in Build Phase!', 'error');
+                return;
+            }
+            
+            game.selectedUnit = unitKey;
+            document.querySelectorAll('.unit-card').forEach(c => c.classList.remove('selected'));
+            document.querySelector(`[data-unit="${unitKey}"]`).classList.add('selected');
+            
+            const unit = units[unitKey];
+            document.getElementById('selectionInfo').style.display = 'flex';
+            document.getElementById('selectionText').textContent = 
+                `${unit.name} (${unit.cost}🪙) - Tippe auf einen Slot`;
+            
+            // Highlight empty slots
+            document.querySelectorAll('#playerBuildArea .build-slot').forEach((slot, idx) => {
+                if (!game.playerUnits[idx]) {
+                    slot.style.borderColor = '#ffd700';
+                }
+            });
+        }
+        
+        function selectSlot(index) {
+            if (!game.selectedUnit) {
+                showToast('Wähle zuerst eine Einheit!', 'info');
+                return;
+            }
+            
+            if (game.phase !== 'build') {
+                showToast('Nur in Build Phase!', 'error');
+                return;
+            }
+            
+            const unit = units[game.selectedUnit];
+            if (game.gold < unit.cost) {
+                showToast(`Nicht genug Gold! Brauche ${unit.cost}`, 'error');
+                return;
+            }
+            
+            if (game.playerUnits[index]) {
+                showToast('Slot bereits belegt!', 'error');
+                return;
+            }
+            
+            // Build unit
+            game.gold -= unit.cost;
+            game.playerUnits[index] = {
+                ...unit,
+                key: game.selectedUnit,
+                currentHp: unit.hp,
+                maxHp: unit.hp,
+                lastAttack: 0
+            };
+            
+            updateBuildSlot(index);
+            updateUI();
+            showToast(`${unit.name} gebaut!`, 'success');
+            log(`${unit.name} auf Slot ${index + 1} gebaut`);
+            
+            // Reset slot styles
+            document.querySelectorAll('#playerBuildArea .build-slot').forEach(slot => {
+                slot.style.borderColor = '';
+            });
+        }
+        
+        function updateBuildSlot(index) {
+            const slots = document.getElementById('playerBuildArea').children;
+            const slot = slots[index];
+            const unit = game.playerUnits[index];
+            
+            if (unit) {
+                slot.className = 'build-slot occupied';
+                slot.innerHTML = `
+                    <div class="unit">
+                        ${unit.icon}
+                        <div class="unit-hp">
+                            <div class="unit-hp-bar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function cancelSelection() {
+            game.selectedUnit = null;
+            document.querySelectorAll('.unit-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('selectionInfo').style.display = 'none';
+            document.querySelectorAll('#playerBuildArea .build-slot').forEach(slot => {
+                slot.style.borderColor = '';
+            });
+        }
+        
+        function sendMercenary(sendKey) {
+            if (game.phase !== 'send' && game.phase !== 'build') {
+                showToast('Nur in Build/Send Phase!', 'error');
+                return;
+            }
+            
+            const merc = sends[sendKey];
+            if (game.mythium < merc.cost) {
+                showToast(`Nicht genug Mythium! Brauche ${merc.cost}`, 'error');
+                return;
+            }
+            
+            game.mythium -= merc.cost;
+            game.income += merc.income;
+            game.playerSends.push({ ...merc, key: sendKey });
+            
+            updateUI();
+            showToast(`${merc.name} gesendet! +${merc.income} Income`, 'success');
+            log(`${merc.name} zum Gegner gesendet`);
+            
+            // AI sends back
+            if (Math.random() > 0.3) {
+                setTimeout(() => enemySend(), 1000 + Math.random() * 2000);
+            }
+        }
+        
+        function enemySend() {
+            const available = Object.keys(sends);
+            const key = available[Math.floor(Math.random() * available.length)];
+            const merc = sends[key];
+            
+            if (game.enemySends.length < 5) {
+                game.enemySends.push({ ...merc, key });
+                log(`Gegner sendet ${merc.name}!`, 'warning');
+            }
+        }
+        
+        function buyWorker() {
+            if (game.gold < 50) {
+                showToast('Nicht genug Gold (50)!', 'error');
+                return;
+            }
+            
+            game.gold -= 50;
+            game.workers++;
+            updateUI();
+            showToast('Worker gekauft! +Mythium', 'success');
+            log('Worker gekauft');
+        }
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            
+            document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+            document.getElementById(`panel${tab.charAt(0).toUpperCase() + tab.slice(1)}`).classList.add('active');
+        }
+        
+        function toggleReady() {
+            if (game.phase === 'combat') return;
+            
+            game.ready = !game.ready;
+            
+            if (game.ready) {
+                showToast('Bereit! Starte...', 'success');
+                document.getElementById('btnReady').textContent = 'WARTE...';
+                document.getElementById('btnReady').disabled = true;
+                
+                // Auto-start next phase after short delay
+                setTimeout(() => {
+                    nextPhase();
+                }, 1000);
+            }
+        }
+        
+        function nextPhase() {
+            game.ready = false;
+            
+            if (game.phase === 'build') {
+                game.phase = 'send';
+                game.phaseTime = 20;
+                showToast('SEND PHASE - Schicke Gegner!', 'info');
+                switchTab('send');
+            } else if (game.phase === 'send') {
+                game.phase = 'combat';
+                game.phaseTime = 0;
+                startCombat();
+            } else if (game.phase === 'combat') {
+                endWave();
+            }
+            
+            updatePhaseIndicator();
+            updateReadyButton();
+        }
+        
+        function updatePhaseIndicator() {
+            const indicator = document.getElementById('phaseIndicator');
+            indicator.className = 'phase-indicator';
+            
+            if (game.phase === 'build') {
+                indicator.classList.add('phase-build');
+                indicator.textContent = 'Build Phase';
+            } else if (game.phase === 'send') {
+                indicator.classList.add('phase-send');
+                indicator.textContent = 'Send Phase';
+            } else {
+                indicator.classList.add('phase-combat');
+                indicator.textContent = 'Combat!';
+            }
+        }
+        
+        function updateReadyButton() {
+            const btn = document.getElementById('btnReady');
+            
+            if (game.phase === 'combat') {
+                btn.disabled = true;
+                btn.textContent = 'KAMPF...';
+            } else {
+                btn.disabled = false;
+                btn.textContent = game.phase === 'build' ? `BEREIT (${game.phaseTime})` : `START (${game.phaseTime})`;
+            }
+        }
+        
+        function startCombat() {
+            showToast(`Welle ${game.wave} startet!`, 'info');
+            log(`=== Welle ${game.wave} startet ===`);
+            game.combatActive = true;
+            
+            const wave = waves[Math.min(game.wave - 1, waves.length - 1)];
+            
+            // Spawn wave creeps for player lane
+            let spawnDelay = 0;
+            wave.enemies.forEach(group => {
+                for (let i = 0; i < group.count; i++) {
+                    setTimeout(() => {
+                        if (game.combatActive) spawnCreep(group.type, 'player');
+                    }, spawnDelay);
+                    spawnDelay += 600;
+                }
+            });
+            
+            // Spawn sent mercenaries to enemy
+            game.playerSends.forEach((merc, i) => {
+                setTimeout(() => {
+                    if (game.combatActive) spawnMercenary(merc, 'enemy');
+                }, 1000 + i * 800);
+            });
+            
+            // Enemy lane spawns (delayed)
+            setTimeout(() => {
+                let enemySpawnDelay = 0;
+                wave.enemies.forEach(group => {
+                    for (let i = 0; i < group.count; i++) {
+                        setTimeout(() => {
+                            if (game.combatActive) spawnCreep(group.type, 'enemy');
+                        }, enemySpawnDelay);
+                        enemySpawnDelay += 600;
+                    }
+                });
+                
+                game.enemySends.forEach((merc, i) => {
+                    setTimeout(() => {
+                        if (game.combatActive) spawnMercenary(merc, 'player');
+                    }, 1000 + i * 800);
+                });
+            }, 2000);
+            
+            // Combat duration max 20s
+            setTimeout(() => {
+                if (game.combatActive) endCombat();
+            }, 20000);
+        }
+        
+        function spawnCreep(type, lane) {
+            const creepType = sends[type] || sends.grunt;
+            const creep = {
+                ...creepType,
+                currentHp: creepType.hp,
+                x: 5,
+                y: 20 + Math.random() * 60,
+                lane: lane,
+                id: Date.now() + Math.random()
+            };
+            
+            const el = document.createElement('div');
+            el.className = 'creep';
+            el.textContent = creep.icon;
+            el.style.left = creep.x + '%';
+            el.style.top = creep.y + '%';
+            el.id = `creep-${creep.id}`;
+            
+            const zone = document.getElementById(lane === 'player' ? 'playerCombat' : 'enemyCombat');
+            zone.appendChild(el);
+            
+            game.creeps.push({ ...creep, el });
+        }
+        
+        function spawnMercenary(merc, lane) {
+            const creep = {
+                ...merc,
+                currentHp: merc.hp,
+                x: 5,
+                y: 20 + Math.random() * 60,
+                lane: lane,
+                id: Date.now() + Math.random(),
+                isMerc: true
+            };
+            
+            const el = document.createElement('div');
+            el.className = 'creep';
+            el.textContent = merc.icon;
+            el.style.left = creep.x + '%';
+            el.style.top = creep.y + '%';
+            el.style.filter = 'drop-shadow(0 0 8px gold) brightness(1.3)';
+            el.style.fontSize = '28px';
+            el.id = `creep-${creep.id}`;
+            
+            const zone = document.getElementById(lane === 'player' ? 'playerCombat' : 'enemyCombat');
+            zone.appendChild(el);
+            
+            game.creeps.push({ ...creep, el });
+        }
+        
+        function combatLoop() {
+            if (!game.combatActive) return;
+            
+            const now = Date.now();
+            
+            // Move creeps
+            game.creeps.forEach(creep => {
+                if (creep.currentHp <= 0) return;
+                
+                creep.x += 0.4;
+                creep.el.style.left = creep.x + '%';
+                
+                if (creep.x >= 88) {
+                    handleLeak(creep);
+                }
+            });
+            
+            // Player units attack
+            const units = game.playerUnits.filter(u => u && u.currentHp > 0);
+            units.forEach((unit, idx) => {
+                if (now - unit.lastAttack < unit.speed) return;
+                
+                const targets = game.creeps.filter(c => c.lane === 'player' && c.currentHp > 0);
+                if (targets.length > 0) {
+                    const target = targets[0];
+                    unit.lastAttack = now;
+                    createProjectile('player', idx, target, unit.dmg, unit.type === 'support');
+                }
+            });
+            
+            // Enemy units attack
+            const enemyUnits = game.enemyUnits.filter(u => u && u.currentHp > 0);
+            enemyUnits.forEach((unit, idx) => {
+                if (now - unit.lastAttack < unit.speed) return;
+                
+                const targets = game.creeps.filter(c => c.lane === 'enemy' && c.currentHp > 0);
+                if (targets.length > 0) {
+                    unit.lastAttack = now;
+                    createProjectile('enemy', idx, targets[0], unit.dmg, false);
+                }
+            });
+            
+            // Remove dead creeps
+            game.creeps = game.creeps.filter(c => {
+                if (c.currentHp <= 0) {
+                    c.el.style.transform = 'scale(0)';
+                    setTimeout(() => c.el.remove(), 200);
+                    return false;
+                }
+                return true;
+            });
+            
+            // Check end condition
+            if (game.creeps.length === 0 && game.combatActive) {
+                setTimeout(() => endCombat(), 1000);
+            }
+        }
+        
+        function createProjectile(lane, unitIdx, target, damage, isHeal) {
+            const slots = document.getElementById(lane === 'player' ? 'playerBuildArea' : 'enemyBuildArea').children;
+            const slot = slots[unitIdx];
+            if (!slot) return;
+            
+            const rect = slot.getBoundingClientRect();
+            const combatRect = document.getElementById(lane === 'player' ? 'playerCombat' : 'enemyCombat').getBoundingClientRect();
+            
+            const proj = document.createElement('div');
+            proj.className = 'projectile';
+            proj.style.left = (rect.left - combatRect.left + rect.width/2) + 'px';
+            proj.style.top = (rect.top - combatRect.top + rect.height/2) + 'px';
+            proj.style.background = isHeal ? '#4caf50' : '#ffeb3b';
+            
+            document.getElementById(lane === 'player' ? 'playerCombat' : 'enemyCombat').appendChild(proj);
+            
+            const targetX = target.x / 100 * combatRect.width;
+            const targetY = target.y / 100 * combatRect.height;
+            
+            requestAnimationFrame(() => {
+                proj.style.transition = 'all 0.3s linear';
+                proj.style.left = targetX + 'px';
+                proj.style.top = targetY + 'px';
+            });
+            
+            setTimeout(() => {
+                proj.remove();
+                if (isHeal) {
+                    target.currentHp = Math.min(target.currentHp + damage, target.hp);
+                    showFloatingText(target.el, `+${damage}`, '#4caf50');
+                } else {
+                    target.currentHp -= damage;
+                    target.el.style.filter = 'brightness(2) sepia(1) hue-rotate(-50deg)';
+                    setTimeout(() => {
+                        target.el.style.filter = target.isMerc ? 'drop-shadow(0 0 8px gold)' : '';
+                    }, 100);
+                    showFloatingText(target.el, `-${damage}`, '#ff4444');
+                }
+            }, 300);
+        }
+        
+        function showFloatingText(element, text, color) {
+            const float = document.createElement('div');
+            float.style.position = 'absolute';
+            float.style.left = '50%';
+            float.style.top = '-20px';
+            float.style.transform = 'translateX(-50%)';
+            float.style.color = color;
+            float.style.fontSize = '14px';
+            float.style.fontWeight = 'bold';
+            float.style.pointerEvents = 'none';
+            float.style.textShadow = '0 0 4px rgba(0,0,0,0.8)';
+            float.style.animation = 'floatUp 1s ease-out forwards';
+            float.textContent = text;
+            
+            element.appendChild(float);
+            setTimeout(() => float.remove(), 1000);
+        }
+        
+        function handleLeak(creep) {
+            const damage = creep.dmg || 10;
+            
+            if (creep.lane === 'player') {
+                game.playerKingHp -= damage;
+                showFloatingText(document.getElementById('playerKingHp').parentElement, `-${damage}`, '#ff4444');
+                document.querySelector('.king-bar').style.animation = 'shake 0.3s';
+                setTimeout(() => document.querySelector('.king-bar').style.animation = '', 300);
+            } else {
+                game.enemyKingHp -= damage;
+                showFloatingText(document.getElementById('enemyKingHp').parentElement, `-${damage}`, '#ff4444');
+            }
+            
+            creep.currentHp = 0;
+            creep.el.remove();
+            
+            updateUI();
+            checkWinCondition();
+        }
+        
+        function endCombat() {
+            if (!game.combatActive) return;
+            game.combatActive = false;
+            log('Kampf beendet!');
+            
+            game.creeps.forEach(c => c.el.remove());
+            game.creeps = [];
+            
+            endWave();
+        }
+        
+        function endWave() {
+            game.gold += game.income;
+            showToast(`+${game.income} Gold Einkommen`, 'success');
+            log(`Einkommen: +${game.income} Gold`);
+            
+            game.playerSends = [];
+            game.enemySends = [];
+            
+            game.wave++;
+            game.phase = 'build';
+            game.phaseTime = 30;
+            
+            updateWavePreview();
+            updatePhaseIndicator();
+            updateReadyButton();
+            updateUI();
+            
+            if (game.wave > 21) {
+                checkFinalWin();
+            } else {
+                showToast('Build Phase - Baue neue Türme!', 'info');
+            }
+        }
+        
+        function checkWinCondition() {
+            if (game.playerKingHp <= 0) {
+                endGame(false);
+            } else if (game.enemyKingHp <= 0) {
+                endGame(true);
+            }
+        }
+        
+        function checkFinalWin() {
+            if (game.enemyKingHp > game.playerKingHp) {
+                endGame(false);
+            } else {
+                endGame(true);
+            }
+        }
+        
+        function endGame(won) {
+            game.combatActive = false;
+            clearInterval(game.timerInterval);
+            
+            setTimeout(() => {
+                alert(won ? '🎉 SIEG!\nDer gegnerische König ist gefallen!' : '💀 NIEDERLAGE!\nDein König wurde besiegt!');
+                location.reload();
+            }, 500);
+        }
+        
+        function updateUI() {
+            document.getElementById('gold').textContent = Math.floor(game.gold);
+            document.getElementById('mythium').textContent = Math.floor(game.mythium);
+            document.getElementById('income').textContent = game.income;
+            document.getElementById('workerCount').textContent = game.workers;
+            document.getElementById('waveNum').textContent = game.wave;
+            document.getElementById('timer').textContent = game.phaseTime;
+            
+            const playerHpPct = Math.max(0, (game.playerKingHp / game.maxKingHp) * 100);
+            const enemyHpPct = Math.max(0, (game.enemyKingHp / game.maxKingHp) * 100);
+            
+            document.getElementById('playerKingHp').style.width = playerHpPct + '%';
+            document.getElementById('playerKingHp').textContent = `${Math.max(0, game.playerKingHp)}/${game.maxKingHp}`;
+            document.getElementById('enemyKingHp').style.width = enemyHpPct + '%';
+            document.getElementById('enemyKingHp').textContent = `${Math.max(0, game.enemyKingHp)}/${game.maxKingHp}`;
+            
+            // Update affordability
+            document.querySelectorAll('.unit-card').forEach(card => {
+                const unit = units[card.dataset.unit];
+                if (game.gold < unit.cost) card.classList.add('disabled');
+                else card.classList.remove('disabled');
+            });
+            
+            document.querySelectorAll('.send-card').forEach(card => {
+                const send = sends[card.dataset.send];
+                if (game.mythium < send.cost) card.classList.add('disabled');
+                else card.classList.remove('disabled');
+            });
+            
+            document.getElementById('btnBuyWorker').disabled = game.gold < 50;
+        }
+        
+        function updateWavePreview() {
+            const wave = waves[Math.min(game.wave - 1, waves.length - 1)] || waves[waves.length - 1];
+            document.getElementById('waveDesc').textContent = wave.desc;
+            
+            let icons = '';
+            wave.enemies.forEach(group => {
+                const icon = sends[group.type]?.icon || '👹';
+                icons += icon.repeat(Math.min(group.count, 8));
+                if (group.count > 8) icons += '...';
+            });
+            document.getElementById('waveEnemies').textContent = icons;
+        }
+        
+        function startGameLoop() {
+            // Phase timer
+            game.timerInterval = setInterval(() => {
+                if (game.phase !== 'combat' && game.phaseTime > 0) {
+                    game.phaseTime--;
+                    updateReadyButton();
+                    
+                    if (game.phaseTime === 0 && !game.ready) {
+                        nextPhase();
+                    }
+                }
+            }, 1000);
+            
+            // Mythium generation
+            setInterval(() => {
+                const mythGain = 2 + (game.workers * 2);
+                game.mythium += mythGain;
+                updateUI();
+            }, 10000);
+            
+            // Combat loop
+            setInterval(combatLoop, 100);
+            
+            // Enemy AI
+            setInterval(() => {
+                if (game.phase === 'build' && Math.random() > 0.6) {
+                    enemyBuild();
+                }
+            }, 4000);
+        }
+        
+        function enemyBuild() {
+            const available = Object.keys(units);
+            const key = available[Math.floor(Math.random() * available.length)];
+            const unit = units[key];
+            
+            const emptySlots = game.enemyUnits.map((u, i) => u === null ? i : null).filter(i => i !== null);
+            if (emptySlots.length > 0) {
+                const slot = emptySlots[Math.floor(Math.random() * emptySlots.length)];
+                game.enemyUnits[slot] = {
+                    ...unit,
+                    key: key,
+                    currentHp: unit.hp,
+                    maxHp: unit.hp,
+                    lastAttack: 0
+                };
+                
+                const slots = document.getElementById('enemyBuildArea').children;
+                slots[slot].className = 'build-slot occupied';
+                slots[slot].innerHTML = `
+                    <div class="unit">
+                        ${unit.icon}
+                        <div class="unit-hp">
+                            <div class="unit-hp-bar" style="width: 100%"></div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast ${type}`;
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2000);
+        }
+        
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString('de-DE', {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            game.logs.unshift(`[${time}] ${msg}`);
+            if (game.logs.length > 30) game.logs.pop();
+        }
+        
+        function showLogs() {
+            document.getElementById('logContent').innerHTML = game.logs.map(l => 
+                `<div class="log-entry">${l}</div>`
+            ).join('');
+            document.getElementById('overlay').classList.add('show');
+            document.getElementById('logPanel').classList.add('show');
+        }
+        
+        function hideLogs() {
+            document.getElementById('overlay').classList.remove('show');
+            document.getElementById('logPanel').classList.remove('show');
+        }
+        
+        // Start
+        init();
+    </script>
+</body>
+</html>
